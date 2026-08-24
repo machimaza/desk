@@ -31,15 +31,20 @@ jobs:
           echo "$DIRS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 이미지·영상 생성 후 게이트 실행
+      - name: 수치 게이트 회귀 테스트
+        # 해자를 지키는 장치가 먼저 살아 있는지 확인합니다.
+        # 이게 깨진 상태로 콘텐츠를 통과시키면 게이트가 있으나 마나입니다.
+        run: python scripts/test_check_numbers.py
+
+      - name: 이미지 생성 후 게이트 실행
         run: |
           FAIL=0
           for d in ${{ steps.changed.outputs.dirs }}; do
             [ -f "$d/data.json" ] || continue
             echo "::group::$d"
+            # 영상 트랙은 CLAUDE.md 9장에 따라 실제 모션 구현 전까지 생성하지 않습니다.
             python scripts/make_images.py "$d"
-            python scripts/make_video.py  "$d"
-            python scripts/verify.py      "$d" || FAIL=1
+            python scripts/verify.py "$d" || FAIL=1
             echo "::endgroup::"
           done
           exit $FAIL

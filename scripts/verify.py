@@ -3,10 +3,13 @@
 사람이 판단할 항목 2개는 [MANUAL]로 남겨 마지막에 출력합니다.
 """
 import sys, json, re, pathlib, subprocess, datetime as dt
-import lint_tone
+import lint_tone, check_numbers
 
+# CLAUDE.md v3 §8 "고정 문구"와 1:1 대응. 여기를 고칠 때는 CLAUDE.md도 같이 고칠 것.
 DISC = {
- "health": "증상이 지속되거나 우려된다면 의료진과 상담",
+ # 건강보험료 니치는 의료 콘텐츠가 아니라 제도 콘텐츠다.
+ # 증상 상담 문구가 아니라 기관 확인 문구를 요구한다.
+ "health": "국민건강보험공단(1577-1000)에 확인",
  "money":  "투자 권유가 아닙니다",
 }
 CAT2KEY = {"건강":"health", "재테크":"money", "생활꿀팁":"none"}
@@ -32,8 +35,16 @@ def main(base):
     for it in d["items"]:
         if it["source_id"] not in sids:
             E.append(f"항목 '{it['label']}' 의 source_id({it['source_id']})가 sources에 없음")
-    unused = set(sids) - {i["source_id"] for i in d["items"]}
-    if unused: W.append(f"사용되지 않은 출처: {', '.join(sorted(unused))}")
+    # 출처는 items에 붙지 않아도 본문에서 인용되면 "사용된" 것으로 본다.
+    # (근거 문단·표·FAQ에서만 쓰이는 원문이 실제로 있다)
+    body = ""
+    bp = base / "blog.md"
+    if bp.exists(): body = bp.read_text(encoding="utf-8")
+    used = {i["source_id"] for i in d["items"]}
+    for sid, s_ in sids.items():
+        if s_.get("url") and s_["url"] in body: used.add(sid)
+    unused = set(sids) - used
+    if unused: W.append(f"본문·항목 어디에도 인용되지 않은 출처: {', '.join(sorted(unused))}")
     if not E: ok("모든 항목에 출처가 연결됨")
 
     # --- 1b. 자기 대입 축 검사 ---
@@ -64,7 +75,13 @@ def main(base):
         try:
             eff = dt.date.fromisoformat(s["effective_date"])
             if (today - eff).days > STALE_DAYS:
-                W.append(f"{s['id']} 시행일 {eff} — {(today-eff).days}일 경과, 개정 여부 확인 필요")
+                # 오래된 자료라도 더 상위 근거(조문 등)와 대조해 두었다면 경고를 내리지 않습니다.
+                # 대신 무엇과 대조했는지 반드시 기록으로 남게 합니다.
+                rc = s.get("rechecked_against")
+                if rc and rc in {x["id"] for x in d["sources"]}:
+                    ok(f"{s['id']} 시행일 {eff} (오래됨) — {rc} 조문과 대조 확인됨")
+                else:
+                    W.append(f"{s['id']} 시행일 {eff} — {(today-eff).days}일 경과, 개정 여부 확인 필요")
         except Exception:
             W.append(f"{s['id']} effective_date 형식 확인 필요: {s.get('effective_date')}")
     ok("출처 등급·링크·최신성 검사 완료")
@@ -87,6 +104,10 @@ def main(base):
         te, tw = lint_tone.check(blog)
         E += te; W += tw
         if not te: ok("톤 규칙 통과")
+        # --- 6b. 수치 정합성 (이 프로젝트의 해자) ---
+        ne, nw = check_numbers.check(base)
+        E += ne; W += nw
+        if not ne: ok("수치 정합성 통과 — 본문 숫자가 원장과 일치")
     else:
         E.append("blog.md 없음")
 

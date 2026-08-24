@@ -5,8 +5,9 @@ pip install playwright --break-system-packages   # 최초 1회
 python3 -m playwright install chromium           # 최초 1회 (로컬 환경만)
 
 # 한 건 만들기
-python3 scripts/make_images.py content/2026-08-26-주제명   # → images/
-python3 scripts/make_video.py  content/2026-08-26-주제명   # → video.mp4
+python3 scripts/make_images.py content/2026-08-26-주제명   # → images/  (pipeline.py 위임)
+python3 scripts/test_check_numbers.py                         # 수치 게이트 회귀 테스트
+# 영상은 CLAUDE.md 9장에 따라 실제 모션 구현 전까지 생성하지 않습니다
 python3 scripts/verify.py      content/2026-08-26-주제명   # → 게이트 판정
 ```
 
