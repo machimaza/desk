@@ -1,0 +1,57 @@
+name: 검수 게이트
+
+on:
+  push:
+    paths: ['content/**', 'scripts/**', 'templates/**', 'brand/**']
+  pull_request:
+    paths: ['content/**']
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+
+      - name: 의존성 설치
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          pip install -q playwright && python -m playwright install --with-deps chromium
+
+      - name: 변경된 콘텐츠 찾기
+        id: changed
+        run: |
+          DIRS=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep '^content/' \
+                 | grep -v '^content/_' | cut -d/ -f1,2 | sort -u || true)
+          [ -z "$DIRS" ] && DIRS=$(ls -d content/*/ 2>/dev/null | grep -v '/_' || true)
+          echo "dirs<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIRS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 이미지·영상 생성 후 게이트 실행
+        run: |
+          FAIL=0
+          for d in ${{ steps.changed.outputs.dirs }}; do
+            [ -f "$d/data.json" ] || continue
+            echo "::group::$d"
+            python scripts/make_images.py "$d"
+            python scripts/make_video.py  "$d"
+            python scripts/verify.py      "$d" || FAIL=1
+            echo "::endgroup::"
+          done
+          exit $FAIL
+
+      - name: 산출물 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: machimaza-outputs
+          path: |
+            content/*/images/
+            content/*/video.mp4
+            content/*/video.srt
+            content/*/cover.png
+          retention-days: 30

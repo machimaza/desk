@@ -1,0 +1,37 @@
+name: 노후화 스캔
+
+# 매주 월요일 09:00 KST (= 일요일 00:00 UTC)
+on:
+  schedule: [{ cron: '0 0 * * 0' }]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+
+      - name: 스캔 실행
+        id: scan
+        run: |
+          python scripts/audit_stale.py > report.md
+          echo "count=$(grep -c '^| ' report.md || echo 0)" >> $GITHUB_OUTPUT
+
+      - name: 갱신 대상이 있으면 이슈 생성
+        if: steps.scan.outputs.count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('report.md', 'utf8');
+            const title = `콘텐츠 갱신 검토 — ${new Date().toISOString().slice(0,10)}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title, body, labels: ['갱신']
+            });
