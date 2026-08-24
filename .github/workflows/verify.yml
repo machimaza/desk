@@ -31,10 +31,13 @@ jobs:
           echo "$DIRS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 수치 게이트 회귀 테스트
-        # 해자를 지키는 장치가 먼저 살아 있는지 확인합니다.
+      - name: 게이트 회귀 테스트
+        # 차별점(경쟁자가 못 따라오는 지점)을 지키는 장치가 먼저 살아 있는지 확인합니다.
         # 이게 깨진 상태로 콘텐츠를 통과시키면 게이트가 있으나 마나입니다.
-        run: python scripts/test_check_numbers.py
+        # 숫자(맞는가)와 용어(읽히는가)를 같은 급으로 봅니다.
+        run: |
+          python scripts/test_check_numbers.py
+          python scripts/test_lint_terms.py
 
       - name: 이미지 생성 후 게이트 실행
         run: |
