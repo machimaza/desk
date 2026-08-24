@@ -12,12 +12,12 @@ T = """:root{--ink:#16202E;--ink-soft:#4A5666;--paper:#FBF8F3;--paper-2:#F2ECE1;
 --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
 body{font-family:var(--font);background:var(--paper);color:var(--ink)}
-.cat-건강보험료{--cat:var(--cat-health)}.cat-재테크{--cat:var(--cat-money)}.cat-생활꿀팁{--cat:var(--cat-life)}"""
+.cat-건강보험{--cat:var(--cat-health)}.cat-재테크{--cat:var(--cat-money)}.cat-생활꿀팁{--cat:var(--cat-life)}"""
 
 AXES = {"소득구간","연령대","가구형태","지역","직업형태","생활패턴"}
 BANNED = {"자산순위","자산 순위","질병위험도","질병 위험도","외모","체형"}
 DISC = {"health":"증상이 지속되거나 우려된다면 의료진과 상담","money":"투자 권유가 아닙니다"}
-CAT2KEY = {"건강보험료":"health","재테크":"money","생활꿀팁":"none"}
+CAT2KEY = {"건강보험":"health","재테크":"money","생활꿀팁":"none"}
 _D = r"(암|당뇨|고혈압|혈압|혈당|아토피|치매|관절염|골다공증|비염|위염|간염|통풍|불면증|우울증|탈모|디스크|염증|콜레스테롤)"
 _E = r"(치료|완치|낫는|낫습|효능|예방|개선|회복|잡아|없애|제거|낮춰|줄여)"
 FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시 알아야|절대 놓치",
@@ -39,8 +39,9 @@ def page(body_css, cls, inner, w, h):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{T}\n{body_css}'
             f'</style></head><body class="cat-{cls}">{inner}</body></html>')
 
-CARD_CSS = """.wrap{width:1080px;height:1350px;padding:90px 80px;display:flex;flex-direction:column}
-.top{display:flex;align-items:center}.badge{background:var(--cat);color:#fff;font-size:26px;
+CARD_CSS = """.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
+.wrap{width:1080px;height:1350px;padding:90px 80px;display:flex;flex-direction:column}
+.top{display:flex;align-items:center}.badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;
 font-weight:900;padding:10px 22px;border-radius:999px}.pg{margin-left:auto;font-size:26px;
 font-weight:800;color:var(--ink-soft)}.dd{margin-left:14px;background:var(--ink);color:var(--paper);
 font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
@@ -53,9 +54,10 @@ font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
 
 POST_CSS = """.wrap{width:1080px;height:1350px;padding:76px 72px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
-.badge{background:var(--cat);color:#fff;font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px}
+.badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;font-weight:800;padding:9px 20px;border-radius:999px}
+.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
 .dd{background:var(--ink);color:var(--paper);font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
-.brand{margin-left:auto;font-size:24px;font-weight:800;color:var(--ink-soft)}
+.brand{font-size:24px;font-weight:800;color:var(--ink-soft);margin:6px 0 2px}
 h1{font-weight:900;line-height:1.18;letter-spacing:-.035em}
 .sub{margin-top:18px;font-size:30px;color:var(--ink-soft);line-height:1.45}
 .rule{height:6px;background:var(--cat);width:96px;border-radius:3px;margin:32px 0 30px}
@@ -71,7 +73,8 @@ display:flex;align-items:center;justify-content:center}
 
 SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
-.badge{background:var(--cat);color:#fff;font-size:34px;font-weight:900;padding:14px 30px;border-radius:999px}
+.badge{border:3px solid var(--cat);color:var(--cat);background:transparent;font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
+.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;white-space:nowrap}
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
 .body{flex:1;display:flex;flex-direction:column;justify-content:center}
 .kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
@@ -108,14 +111,15 @@ def build_images(d, base):
         for i,it in enumerate(items))
     src = " · ".join(dict.fromkeys(s["issuer"] for s in d["sources"]))
     poster = page(POST_CSS, m["category"], f'''<div class="wrap">
-<div class="top"><div class="badge">{m["category"]}</div>{dd}<div class="brand">@machimaza</div></div>
+<div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}{dd}</div>
+<div class="brand">@machimaza</div>
 <h1 style="font-size:{az(m["title"],76,0.9,52)}px">{esc(m["title"])}</h1>
 <div class="sub">{esc(m.get("subtitle",d["summary"])[:70])}</div><div class="rule"></div>
 <div class="list">{rows}</div><div class="foot"><div class="src">출처 · {esc(src)} ({m["publish_date"]} 기준)</div>
 <div class="cta">{esc(d.get("cta","저장해두세요"))}</div></div></div>''', 1080, 1350)
     def card(pg_no, kicker, head, big, desc, foot, hf):
         return page(CARD_CSS, m["category"], f'''<div class="wrap">
-<div class="top"><div class="badge">{m["category"]}</div><div class="pg">{pg_no}/{total}</div>{dd}</div>
+<div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}</div>
 <div class="body">{kicker}<div class="head" style="font-size:{hf}px">{head}</div>{big}{desc}</div>
 <div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
     pages = [("poster.png", poster)]

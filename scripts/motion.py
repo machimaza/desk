@@ -37,7 +37,7 @@ CSS = """
   --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
-.cat-건강보험료{--cat:var(--cat-health)}
+.cat-건강보험{--cat:var(--cat-health)}
 .cat-재테크{--cat:var(--cat-money)}
 .cat-생활꿀팁{--cat:var(--cat-life)}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
@@ -45,8 +45,12 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;
   display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
-.badge{background:var(--cat);color:#fff;font-size:34px;font-weight:900;
-  padding:14px 30px;border-radius:999px}
+/* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
+.badge{border:3px solid var(--cat);color:var(--cat);background:transparent;
+  font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
+.through{margin-left:auto;background:var(--ink);color:var(--paper);
+  font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;
+  white-space:nowrap}
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
 .body{flex:1;display:flex;flex-direction:column;justify-content:center}
 .kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
@@ -117,6 +121,19 @@ function setBar(el,ratio,p){
 """
 
 
+def top_bar(m):
+    """좌측 = 분야, 우측 = 관통 단어.
+
+    관통 단어는 '공단에 전화해서 말해야 하는 단어' 입니다.
+    분야만 있으면 무슨 얘긴지 모르고, 관통 단어만 있으면 어느 제도인지 모릅니다.
+    """
+    cat = esc(m["category"])
+    th = m.get("throughline")
+    return (f'<div class="top"><div class="badge">{cat}</div>'
+            + (f'<div class="through">{esc(th)}</div>' if th else "")
+            + '</div>')
+
+
 def esc(s):
     return H.escape(str(s))
 
@@ -142,15 +159,13 @@ def page(cat, inner, script):
 
 def scene_title(m, hook, dd):
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+{top_bar(m)}
 <div class="body">
-  <div class="kicker" id="k">{esc(m["category"])}</div>
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
 </div></div>{dd}<div class="cap" id="c">{esc(hook)}</div>
 <div class="brand">@machimaza</div>'''
     js = '''window.draw=(t)=>{
-  enter(document.getElementById('k'), easeOut(seg(t,0.0,0.5)));
-  enter(document.getElementById('h'), easeOut(seg(t,0.25,0.7)));
+  enter(document.getElementById('h'), easeOut(seg(t,0.05,0.7)));
   enter(document.getElementById('c'), easeOut(seg(t,0.8,0.6)));
 };'''
     return page(m["category"], inner, js), 1.6, 3.0
@@ -159,7 +174,7 @@ def scene_title(m, hook, dd):
 def scene_value(m, it, pg, ratio, dd):
     num, unit = parse_amount(it["value"])
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="head" id="l" style="font-size:{max(58, 100 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="big" id="n">0</div>
@@ -181,7 +196,7 @@ def scene_compare(m, it, pg, base_num, dd):
     num, unit = parse_amount(it["value"])
     gross = base_num if base_num else (num * 2 if num else 0)
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="head" id="l" style="font-size:{max(56, 96 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="cmp">
@@ -214,7 +229,7 @@ def scene_compare(m, it, pg, base_num, dd):
 def scene_step(m, it, pg, no, dd):
     tx = (it.get("caption") or it["detail"])[:70]
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="stepno" id="s">{no}</div>
   <div class="steptx" id="l">{esc(it["label"])}</div>
@@ -236,7 +251,7 @@ def scene_step(m, it, pg, no, dd):
 def scene_fact(m, sc, dd):
     """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
   <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
@@ -261,7 +276,7 @@ def scene_list(m, sc, dd):
     nk = " warn" if sc.get("note_kind") == "warn" else ""
     note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
@@ -288,7 +303,7 @@ def scene_compare2(m, sc, dd):
     nb, ub = parse_amount(b["value"])
     na, ua = parse_amount(a["value"])
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+{top_bar(m)}
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div class="cmp">
@@ -333,7 +348,7 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     note = (f'<div class="note" id="tn">{esc(sc["note"])}</div>'
             if sc and sc.get("note") else "")
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+{top_bar(m)}
 <div class="body"><table class="tbl">{rows}</table>{note}</div>
 </div>{dd}<div class="cap" id="c">{esc(cap)}</div>
 <div class="brand">@machimaza</div>'''
