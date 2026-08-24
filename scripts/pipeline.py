@@ -128,9 +128,11 @@ h1{font-weight:900;line-height:1.18;letter-spacing:-.035em}
 display:flex;align-items:center;justify-content:center}
 .lab{font-weight:800;letter-spacing:-.03em;line-height:1.2}
 .val{margin-left:auto;font-weight:900;color:var(--cat);white-space:nowrap}
-.foot{margin-top:26px;display:flex;align-items:flex-end;gap:20px}
-.src{font-size:20px;color:var(--ink-soft);flex:1}
-.cta{background:var(--ink);color:var(--paper);font-size:24px;font-weight:800;padding:16px 26px;border-radius:14px}"""
+.foot{margin-top:26px;display:flex;flex-direction:column;gap:16px}
+.src{font-size:22px;color:var(--ink-soft);white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis}
+.cta{background:var(--ink);color:var(--paper);font-size:26px;font-weight:800;
+padding:18px 28px;border-radius:14px;text-align:center;word-break:keep-all}"""
 
 SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
