@@ -112,6 +112,12 @@ def main(base):
         ge, _ = lint_terms.check(base)
         E += ge
         if not ge: ok("용어 규칙 통과 — 등록 용어 첫 등장에 뜻풀이 있음")
+        # --- 6d. 나레이션 대본 (영상이 있을 때만) ---
+        if (base/"video.mp4").exists():
+            import build_narration
+            _, _, nre = build_narration.build(base)
+            E += nre
+            if not nre: ok("나레이션 대본 통과 — 길이·중복·순화어")
     else:
         E.append("blog.md 없음")
 
@@ -133,8 +139,9 @@ def main(base):
         dur = float(j["format"]["duration"])
         if (st["width"], st["height"]) != (1080,1920):
             E.append(f"영상 해상도 {st['width']}x{st['height']} (1080x1920 아님)")
-        if dur < 60: E.append(f"영상 {dur:.1f}초 — 60초 미만 (틱톡 리워드 조건 미달)")
-        elif dur > 90: E.append(f"영상 {dur:.1f}초 — 90초 초과")
+        # CLAUDE.md 9장 — 리워드(60초 하한)를 포기하고 완주율을 택했습니다.
+        if dur < 40: E.append(f"영상 {dur:.1f}초 — 40초 미만 (내용이 얕다는 신호)")
+        elif dur > 55: E.append(f"영상 {dur:.1f}초 — 55초 초과 (완주율 급락 구간)")
         else: ok(f"영상 규격 통과 ({dur:.1f}초, {st['width']}x{st['height']})")
     else:
         W.append("video.mp4 없음 (영상 트랙 미생성)")

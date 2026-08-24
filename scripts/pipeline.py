@@ -143,59 +143,19 @@ def build_images(d, base):
     (base/"images"/"alt.txt").write_text("\n".join(alt), encoding="utf-8")
     print(f"[images] {len(w)}장 + alt.txt")
 
-def build_video(d, base, target=72):
-    m, items = d["meta"], d["items"]; rev = list(reversed(items)); n = len(rev)
-    HOOK, OUTRO, FPS = 4.0, 6.0, 30
-    per = max(3.0, round((target-HOOK-OUTRO)/n, 2))
-    dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
-    def sc(pg_no, content, cap):
-        return page(SCENE_CSS, m["category"], f'''<div class="wrap">
-<div class="top"><div class="badge">{m["category"]}</div><div class="pg">{pg_no}</div></div>
-<div class="body">{content}</div></div>{dd}<div class="cap">{cap}</div>
-<div class="brand">@machimaza</div>''', 1080, 1920)
-    S = [("s000.png", sc("", f'<div class="kicker">{m["category"]}</div>'
-        f'<div class="head" style="font-size:{az(m["title"],120,1.6,74)}px">{esc(m["title"])}</div>',
-        esc(d["hook"])), HOOK)]
-    for i,it in enumerate(rev):
-        cap = esc((it.get("caption") or it["detail"])[:60])
-        S.append((f"s{i+1:03d}.png", sc(it.get("rank",n-i),
-            f'<div class="head" style="font-size:{az(it["label"],104,2.0,66)}px">{esc(it["label"])}</div>'
-            f'<div class="big">{esc(it["value"])}</div>', cap), per))
-    rows = "".join(f'<tr><td>{esc(i["label"])}</td><td>{esc(i["value"])}</td></tr>' for i in items)
-    S.append((f"s{n+1:03d}.png", sc("전체", f'<table class="tbl">{rows}</table>',
-        "지금 캡처해두세요. 신청할 때 다시 필요합니다."), OUTRO))
-    tmp = pathlib.Path(tempfile.mkdtemp()); shoot([(a,b) for a,b,_ in S], tmp, 1080, 1920)
-    clips = []
-    for i,(name,_,dur) in enumerate(S):
-        c = tmp/f"c{i:03d}.mp4"
-        vf = (f"scale=2160:3840,zoompan=z='min(zoom+0.0007,1.12)':d={int(dur*FPS)}"
-              f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps={FPS},format=yuv420p")
-        subprocess.run(["ffmpeg","-y","-loglevel","error","-loop","1","-i",str(tmp/name),"-vf",vf,
-            "-t",str(dur),"-c:v","libx264","-preset","medium","-crf","20","-r",str(FPS),str(c)],check=True)
-        clips.append(c)
-    lst = tmp/"l.txt"; lst.write_text("".join(f"file '{c}'\n" for c in clips))
-    sil = tmp/"s.mp4"
-    subprocess.run(["ffmpeg","-y","-loglevel","error","-f","concat","-safe","0","-i",str(lst),
-        "-c","copy",str(sil)],check=True)
-    out = base/"video.mp4"
-    subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(sil),"-f","lavfi",
-        "-i","anullsrc=r=44100:cl=stereo","-shortest","-c:v","copy","-c:a","aac","-b:a","64k",
-        str(out)],check=True)
-    subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(out),"-vframes","1",
-        str(base/"cover.png")],check=True)
-    def ts(s):
-        h,r = divmod(s,3600); mm,ss = divmod(r,60)
-        return f"{int(h):02d}:{int(mm):02d}:{ss:06.3f}".replace(".",",")
-    srt, t0 = [], 0.0
-    for i,(_,html,dur) in enumerate(S):
-        mm = re.search(r'<div class="cap">(.*?)</div>', html, re.S)
-        txt = re.sub(r"<[^>]+>","",mm.group(1)).strip() if mm else ""
-        if txt: srt.append(f"{i+1}\n{ts(t0)} --> {ts(t0+dur)}\n{txt}\n")
-        t0 += dur
-    (base/"video.srt").write_text("\n".join(srt), encoding="utf-8")
-    dur = float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
-        "-of","default=nw=1:nk=1",str(out)],capture_output=True,text=True).stdout.strip())
-    print(f"[video] {dur:.1f}초 + srt + cover")
+def build_video(d, base, target=None):
+    """영상은 motion.py 가 담당합니다.
+
+    예전에는 여기서 정지 이미지에 zoompan(느린 확대)을 걸었습니다.
+    그 방식은 CLAUDE.md 9장에서 폐기했습니다 — AI 양산 콘텐츠의 서명이라
+    플랫폼이 잡아내는 바로 그 신호이기 때문입니다.
+    """
+    import motion
+    out, dur, has_narr = motion.render(d, base)
+    print(f"[video] {out.name} · {dur:.1f}초 · 구조 {d['meta'].get('video_structure','countdown')} "
+          f"· 음성 {'있음' if has_narr else '없음(무음)'}")
+    return out
+
 
 def verify(d, base):
     E, W = [], []
