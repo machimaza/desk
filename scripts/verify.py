@@ -188,6 +188,38 @@ def main(base):
     else:
         E.append("blog.md 없음")
 
+    # --- 6e. 화면 밀도 — 빈 화면은 만들다 만 것처럼 보입니다 ------------
+    # 처음 카드는 잉크 4.2%(화면의 95%가 빈 공간)였고, 쇼츠에는 3.6% 프레임도 있었습니다.
+    # 특히 인스타는 음성이 없으므로 카드가 내용을 다 짊어져야 합니다.
+    try:
+        from PIL import Image
+        import numpy as np
+
+        def _ink(path, box=None):
+            im = Image.open(path).convert("L")
+            if box:
+                im = im.crop(box)
+                a = np.array(im)
+            else:
+                a = np.array(im)
+            bg = np.bincount(a.ravel()).argmax()
+            return float((np.abs(a.astype(int) - int(bg)) > 12).mean() * 100)
+
+        cards = sorted((base / "images").glob("card_*.png"))
+        if cards:
+            vals = [(c.name, _ink(c)) for c in cards]
+            thin = [n for n, v in vals if v < 5.0]
+            avg = sum(v for _, v in vals) / len(vals)
+            if thin:
+                E.append(f"카드가 비어 있습니다 {thin} — 잉크 5% 미만. "
+                         f"인스타는 음성이 없으므로 points 로 내용을 채우세요")
+            elif avg < 6.0:
+                W.append(f"카드 평균 밀도 {avg:.1f}% — 6% 이상을 권합니다")
+            else:
+                ok(f"카드 밀도 평균 {avg:.1f}% (최소 {min(v for _, v in vals):.1f}%)")
+    except ImportError:
+        W.append("Pillow 없음 — 화면 밀도 검사를 건너뜁니다")
+
     # --- 7. 영상 규격 ---
     vid = base/"video.mp4"
     if vid.exists():

@@ -49,16 +49,35 @@ def page(body_css, cls, inner, w, h):
             f'</style></head><body style="--cat:{cat_color(cls)}">{inner}</body></html>')
 
 CARD_CSS = """.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
-.wrap{width:1080px;height:1350px;padding:90px 80px;display:flex;flex-direction:column}
+.wrap{width:1080px;height:1350px;padding:70px 76px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center}.badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;
 font-weight:900;padding:10px 22px;border-radius:999px}.pg{margin-left:auto;font-size:26px;
 font-weight:800;color:var(--ink-soft)}.dd{margin-left:14px;background:var(--ink);color:var(--paper);
 font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
-.body{flex:1;display:flex;flex-direction:column;justify-content:center}
-.kicker{font-size:34px;font-weight:800;color:var(--cat);margin-bottom:22px}
+.body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px}
+.step{font-family:inherit;font-size:24px;font-weight:800;color:var(--ink-soft);
+letter-spacing:.08em;margin-top:26px}
+.cv .head{line-height:1.15;margin-bottom:8px}
+.cv .desc{font-size:42px;margin-top:22px}
+.cv .pts{margin-top:52px}
+.cv .pt{padding:24px 2px;font-size:38px}
+.cv .pt span{min-width:250px}
+.cv .voice{font-size:36px;padding:28px}
+.pts{margin-top:30px;border-top:2px solid var(--line);padding-top:6px}
+.pt{display:flex;align-items:baseline;gap:20px;padding:16px 2px;
+border-bottom:1px solid var(--line);font-size:32px;word-break:keep-all}
+.pt span{color:var(--ink-soft);font-weight:700;flex:none;min-width:210px}
+.pt b{font-weight:800;color:var(--ink)}
+.voice{margin-top:auto;padding:22px 24px;background:var(--paper-2);border-radius:14px;
+font-size:32px;font-weight:700;line-height:1.5;color:var(--ink);word-break:keep-all}
+.voice::before{content:"짚고 넘어가면 ";color:var(--cat);font-weight:900}
+.foot{display:flex;font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);
+padding-top:20px;margin-top:24px}
+.fr{margin-left:auto;font-weight:800}
+.kicker{font-size:38px;font-weight:800;color:var(--cat);margin-bottom:18px}
 .head{font-weight:900;line-height:1.2;letter-spacing:-.035em}
-.big{font-size:120px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:24px 0}
-.desc{margin-top:30px;font-size:34px;font-weight:500;line-height:1.55;color:var(--ink-soft)}
+.big{font-size:132px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:24px 0}
+.desc{margin-top:28px;font-size:36px;font-weight:500;line-height:1.55;color:var(--ink-soft)}
 .foot{font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);padding-top:22px}
 .head,.desc,.sub2,.li,.note{word-break:keep-all}
 .sub2{margin-top:18px;font-size:34px;font-weight:700;color:var(--ink-soft);line-height:1.45}
@@ -118,7 +137,26 @@ SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;
 .badge{border:3px solid var(--cat);color:var(--cat);background:transparent;font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
 .through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;white-space:nowrap}
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
-.body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px}
+.step{font-family:inherit;font-size:24px;font-weight:800;color:var(--ink-soft);
+letter-spacing:.08em;margin-top:26px}
+.cv .head{line-height:1.15;margin-bottom:8px}
+.cv .desc{font-size:42px;margin-top:22px}
+.cv .pts{margin-top:52px}
+.cv .pt{padding:24px 2px;font-size:38px}
+.cv .pt span{min-width:250px}
+.cv .voice{font-size:36px;padding:28px}
+.pts{margin-top:30px;border-top:2px solid var(--line);padding-top:6px}
+.pt{display:flex;align-items:baseline;gap:20px;padding:16px 2px;
+border-bottom:1px solid var(--line);font-size:32px;word-break:keep-all}
+.pt span{color:var(--ink-soft);font-weight:700;flex:none;min-width:210px}
+.pt b{font-weight:800;color:var(--ink)}
+.voice{margin-top:auto;padding:22px 24px;background:var(--paper-2);border-radius:14px;
+font-size:32px;font-weight:700;line-height:1.5;color:var(--ink);word-break:keep-all}
+.voice::before{content:"짚고 넘어가면 ";color:var(--cat);font-weight:900}
+.foot{display:flex;font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);
+padding-top:20px;margin-top:24px}
+.fr{margin-left:auto;font-weight:800}
 .kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
 .head{font-weight:900;line-height:1.18;letter-spacing:-.035em}
 .big{font-size:150px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:36px 0}
@@ -190,32 +228,55 @@ def build_images(d, base):
 <div class="list">{rows}</div><div class="foot"><div class="src">출처 · {esc(src)} ({m["publish_date"]} 기준)</div>
 <div class="cta">{esc(d.get("cta","저장해두세요"))}</div></div></div>''', 1080, 1350)
     def card(pg_no, kicker, head, big, desc, foot, hf):
-        return page(CARD_CSS, m["category"], f'''<div class="wrap">
+        return page(CARD_CSS, m["category"], f'''<div class="wrap{' cv' if cover else ''}">
 <div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}</div>
 <div class="body">{kicker}<div class="head" style="font-size:{hf}px">{head}</div>{big}{desc}</div>
 <div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
     # 카드는 영상과 같은 flow 를 그립니다.
     # 예전에는 items 를 그대로 카드로 찍어서, 카드 다섯 장이 전부 가격표였습니다.
     # 영상에서 고친 문제(자격·기한·신청 방법이 없음)가 카드에도 똑같이 있었습니다.
-    def shell(body, foot):
+    _src1 = (d["sources"][0]["issuer"].split()[0] if d.get("sources") else "")
+    _basis = m.get("basis") or f'{m["publish_date"][:4]}년 기준'
+
+    def shell(body, foot, step=None, voice=None, points=None, cover=False):
+        """카드는 소리가 없습니다. 영상이 음성으로 말하는 것을 글로 넣어야 합니다.
+
+        예전 뼈대는 본문을 세로 가운데 정렬해서, 세 줄짜리 카드가 1350px 한가운데
+        떠 있었습니다. 잉크 비율 4.2% — 화면의 95%가 빈 공간이었습니다.
+        위에서부터 채우고, 해석 문장과 근거를 함께 싣습니다.
+        """
         th = (f"<div class='through'>{esc(m['throughline'])}</div>"
               if m.get("throughline") else "")
-        return page(CARD_CSS, m["category"], f'''<div class="wrap">
+        pg = f'<div class="step">{step}</div>' if step else ""
+        vo = f'<div class="voice">{esc(voice)}</div>' if voice else ""
+        pts = ""
+        if points:
+            pts = '<div class="pts">' + "".join(
+                f'<div class="pt"><span>{esc(k)}</span><b>{esc(v)}</b></div>'
+                for k, v in points) + '</div>'
+        return page(CARD_CSS, m["category"], f'''<div class="wrap{' cv' if cover else ''}">
 <div class="top"><div class="badge">{esc(m["category"])}</div>{th}</div>
-<div class="body">{body}</div>
-<div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
+{pg}<div class="body">{body}{pts}{vo}</div>
+<div class="foot"><b>마치마자</b> · {esc(_basis)} · {esc(_src1)}<span class="fr">{foot}</span></div>
+</div>''', 1080, 1350)
 
     def card_for(sc, idx, last):
-        ty, foot = sc["type"], ("@machimaza" if last else "넘겨서 확인하세요 →")
+        ty, foot = sc["type"], ("@machimaza" if last else "넘겨서 →")
+        step = f'{idx+1} / {len(scenes)}'
+        voice = sc.get("voice")
+        points = sc.get("points")
         cap = f'<div class="desc">{esc(sc.get("screen",""))}</div>'
         if ty == "hook":
-            return shell(f'<div class="head" style="font-size:{az(m["title"],92,1.1,58)}px">'
-                         f'{esc(m["title"])}</div>{cap}', foot)
+            # 표지는 스크롤이 멈추는 자리입니다. 본문 카드와 같은 크기로 두면
+            # 넘길 이유를 주지 못합니다. 제목과 요점을 키웁니다.
+            return shell(f'<div class="cover"><div class="head" '
+                         f'style="font-size:{az(m["title"],104,1.1,64)}px">{esc(m["title"])}</div>'
+                         f'{cap}</div>', foot, step, voice, points, cover=True)
         if ty == "fact":
             sub = f'<div class="sub2">{esc(sc["sub"])}</div>' if sc.get("sub") else ""
             return shell(f'<div class="kicker">{esc(sc["label"])}</div>'
                          f'<div class="big" style="font-size:{max(72, 128 - len(sc["big"]) * 5)}px">'
-                         f'{esc(sc["big"])}</div>{sub}{cap}', foot)
+                         f'{esc(sc["big"])}</div>{sub}{cap}', foot, step, voice, points)
         if ty == "compare":
             b, a = sc["before"], sc["after"]
             nb = re.sub(r"[^\d]", "", b["value"]); na = re.sub(r"[^\d]", "", a["value"])
@@ -227,12 +288,12 @@ def build_images(d, base):
                 f'<div class="bar"><i style="width:100%;background:var(--line)"></i></div></div>'
                 f'<div><div class="lab2">{esc(a["label"])}</div>'
                 f'<div class="v2" style="color:var(--cat)">{esc(a["value"])}</div>'
-                f'<div class="bar"><i style="width:{r:.1f}%"></i></div></div></div>{cap}', foot)
+                f'<div class="bar"><i style="width:{r:.1f}%"></i></div></div></div>{cap}', foot, step, voice, points)
         if ty == "list":
             lis = "".join(f'<div class="li"><b></b><span>{esc(x)}</span></div>' for x in sc["items"])
             note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
             return shell(f'<div class="head" style="font-size:56px">{esc(sc["label"])}</div>'
-                         f'<div style="margin-top:34px">{lis}</div>{note}{cap}', foot)
+                         f'<div style="margin-top:34px">{lis}</div>{note}{cap}', foot, step, voice, points)
         if ty == "table":
             cols = sc.get("columns") or ["구간", "금액"]
             head = "".join(f"<th>{esc(c)}</th>" for c in cols)
@@ -247,7 +308,7 @@ def build_images(d, base):
                     + (f'<td>{esc(i.get("employed", i["value"]))}</td>' if len(cols) > 2 else "")
                     + f'<td>{esc(i["value"])}</td></tr>' for i in items)
             note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
-            return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot)
+            return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot, step, voice, points)
         raise ValueError(f"카드로 그릴 수 없는 장면 유형: {ty}")
 
     scenes = d.get("flow", {}).get("scenes")

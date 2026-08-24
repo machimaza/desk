@@ -39,7 +39,7 @@ CSS = """
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
   width:1080px;height:1920px;overflow:hidden}
-.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;
+.wrap{width:1080px;height:1920px;padding:210px 190px 720px 100px;
   display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
 /* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
@@ -62,6 +62,11 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .cmp .lab2{font-size:40px;font-weight:800;color:var(--ink-soft);margin-bottom:14px}
 .cmp .v2{font-size:84px;font-weight:900;letter-spacing:-.04em;white-space:nowrap;
   font-variant-numeric:tabular-nums;margin-bottom:16px}
+.pts{margin-top:30px;border-top:2px solid var(--line)}
+.pt{display:flex;align-items:baseline;gap:22px;padding:16px 2px;
+  border-bottom:1px solid var(--line);font-size:38px;word-break:keep-all}
+.pt span{color:var(--ink-soft);font-weight:700;flex:none;min-width:250px}
+.pt b{font-weight:800}
 .sub{font-size:44px;font-weight:700;color:var(--ink-soft);
   margin-top:10px;word-break:keep-all;line-height:1.4}
 .cmp .lab2{font-size:38px;font-weight:800;color:var(--ink-soft);margin-bottom:12px;
@@ -90,6 +95,11 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
   line-height:1.35;border-left:8px solid var(--cat);padding-left:26px;word-break:keep-all}
 .brand{position:absolute;left:100px;bottom:625px;font-size:26px;font-weight:800;
   color:var(--ink-soft)}
+.basis{position:absolute;left:100px;right:190px;bottom:672px;font-size:28px;
+  font-weight:700;color:var(--ink-soft);letter-spacing:-.01em}
+.prog{position:absolute;left:100px;right:190px;top:322px;height:6px;
+  background:var(--line);border-radius:999px;overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--cat);border-radius:999px}
 """
 
 JS = """
@@ -124,6 +134,24 @@ CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
 
 def cat_color(name):
     return (CATS.get(name) or {}).get("색", "#2E6B5E")
+
+
+def bottom_bar(m, d=None):
+    """바닥에 근거를 답니다 — 무슨 해 기준이고 어디서 왔는지.
+
+    안전영역(890×1280) 안에서 본문이 가운데 정렬돼 있어 위아래가 비었습니다.
+    빈 곳을 장식으로 채우지 않고, 영상에 없던 신뢰 정보를 넣습니다.
+    """
+    basis = m.get("basis") or f'{m["publish_date"][:4]}년 기준'
+    src = ""
+    if d and d.get("sources"):
+        src = " · " + esc(d["sources"][0]["issuer"].split()[0])
+    return f'<div class="basis">{esc(basis)}{src}</div>'
+
+
+def prog_bar(i, n):
+    return (f'<div class="prog"><i style="width:{(i+1)/n*100:.1f}%"></i></div>'
+            if n > 1 else "")
 
 
 def top_bar(m):
@@ -164,11 +192,11 @@ def page(cat, inner, script):
 
 def scene_title(m, hook, dd):
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
 </div></div>{dd}<div class="cap" id="c">{esc(hook)}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('h'), easeOut(seg(t,0.05,0.7)));
   enter(document.getElementById('c'), easeOut(seg(t,0.8,0.6)));
@@ -179,13 +207,13 @@ def scene_title(m, hook, dd):
 def scene_value(m, it, pg, ratio, dd):
     num, unit = parse_amount(it["value"])
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(58, 100 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="big" id="n">0</div>
   <div class="bar"><div class="fill" id="b" style="width:0%"></div></div>
 </div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const p = seg(t,0.3,1.5);
@@ -201,7 +229,7 @@ def scene_compare(m, it, pg, base_num, dd):
     num, unit = parse_amount(it["value"])
     gross = base_num if base_num else (num * 2 if num else 0)
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(56, 96 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="cmp">
@@ -217,7 +245,7 @@ def scene_compare(m, it, pg, base_num, dd):
     </div>
   </div>
 </div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     ratio2 = (num / gross) if gross else 1.0
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -234,13 +262,13 @@ def scene_compare(m, it, pg, base_num, dd):
 def scene_step(m, it, pg, no, dd):
     tx = (it.get("caption") or it["detail"])[:70]
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="stepno" id="s">{no}</div>
   <div class="steptx" id="l">{esc(it["label"])}</div>
   <div class="big" id="n" style="font-size:96px">0</div>
 </div></div>{dd}<div class="cap" id="c">{esc(tx)}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     num, unit = parse_amount(it["value"])
     js = f'''window.draw=(t)=>{{
   const sp = seg(t,0.0,0.45);
@@ -253,25 +281,45 @@ def scene_step(m, it, pg, no, dd):
     return page(m["category"], inner, js), 2.0, 3.9
 
 
+def points_block(sc):
+    """장면의 요점 — 카드와 영상이 함께 씁니다.
+
+    영상에서 fact 장면은 라벨·숫자·한 줄뿐이라 안전영역의 대부분이 비었습니다
+    (잉크 3.6% 프레임까지 나왔습니다). 정지 구간이 3~4초이므로
+    짧은 세 줄은 충분히 읽힙니다. 빈 곳을 정보로 채웁니다.
+    """
+    ps = sc.get("points")
+    if not ps:
+        return ""
+    return ('<div class="pts" id="pts">' + "".join(
+        f'<div class="pt" style="opacity:0"><span>{esc(k)}</span><b>{esc(v)}</b></div>'
+        for k, v in ps) + '</div>')
+
+
 def scene_fact(m, sc, dd):
     """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
+    pts = points_block(sc)
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
   <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
   <div class="sub" id="s">{esc(sc.get("sub",""))}</div>
+  {pts}
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const p = easeOut(seg(t,0.35,0.6));
   const b = document.getElementById('b');
   b.style.opacity = p; b.style.transform = 'scale('+(0.86+0.14*p).toFixed(3)+')';
   enter(document.getElementById('s'), easeOut(seg(t,0.8,0.5)));
-  enter(document.getElementById('c'), easeOut(seg(t,1.15,0.5)));
+  document.querySelectorAll('.pt').forEach((e,i)=>{
+    enter(e, easeOut(seg(t, 1.05+0.18*i, 0.45)));
+  });
+  enter(document.getElementById('c'), easeOut(seg(t,1.3,0.5)));
 };'''
-    return page(m["category"], inner, js), 1.9, 3.9
+    return page(m["category"], inner, js), 2.2, 3.9
 
 
 def scene_list(m, sc, dd):
@@ -281,12 +329,12 @@ def scene_list(m, sc, dd):
     nk = " warn" if sc.get("note_kind") == "warn" else ""
     note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const ls = document.querySelectorAll('.li');
@@ -308,7 +356,7 @@ def scene_compare2(m, sc, dd):
     nb, ub = parse_amount(b["value"])
     na, ua = parse_amount(a["value"])
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div class="cmp">
@@ -324,7 +372,7 @@ def scene_compare2(m, sc, dd):
     </div>
   </div>
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     ratio = (na / nb) if nb else 1.0
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -359,10 +407,10 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     note = (f'<div class="note" id="tn">{esc(sc["note"])}</div>'
             if sc and sc.get("note") else "")
     inner = f'''<div class="wrap">
-{top_bar(m)}
+{top_bar(m)}<!--PRG-->
 <div class="body"><table class="tbl">{rows}</table>{note}</div>
 </div>{dd}<div class="cap" id="c">{esc(cap)}</div>
-<div class="brand">@machimaza</div>'''
+<div class="brand">@machimaza</div><!--BOT-->'''
     js = '''window.draw=(t)=>{
   const rs = document.querySelectorAll('.r');
   rs.forEach((r,i)=>{ enter(r, easeOut(seg(t, 0.12*i, 0.45))); });
@@ -424,6 +472,7 @@ def build_scenes(d):
 def render(d, base, keep_frames=False):
     base = pathlib.Path(base)
     scenes = build_scenes(d)
+    BOT = bottom_bar(d["meta"], d)
     tmp = pathlib.Path(tempfile.mkdtemp())
     clips, srt_rows, t_abs = [], [], 0.0
 
@@ -432,6 +481,8 @@ def render(d, base, keep_frames=False):
         b = pw.chromium.launch(args=["--force-device-scale-factor=1"])
         pg = b.new_page(viewport={"width": W, "height": HGT})
         for si, (html, anim, hold) in enumerate(scenes):
+            html = (html.replace("<!--BOT-->", BOT)
+                        .replace("<!--PRG-->", prog_bar(si, len(scenes))))
             pg.set_content(html, wait_until="load")
             pg.wait_for_timeout(80)
             fdir = tmp / f"s{si:02d}"

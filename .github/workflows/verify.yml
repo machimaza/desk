@@ -19,7 +19,7 @@ jobs:
       - name: 의존성 설치
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
-          pip install -q playwright && python -m playwright install --with-deps chromium
+          pip install -q playwright pillow numpy && python -m playwright install --with-deps chromium
 
       - name: 변경된 콘텐츠 찾기
         id: changed
