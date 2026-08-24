@@ -175,6 +175,33 @@ def check(base):
             E.append(f"L{i}: {v:,}만원 은 {'·'.join(sorted(ys))}년 표의 값인데 "
                      f"연도 표기 없이 쓰였습니다 — {ln.strip()[:50]}")
 
+    # ---- 3d. 표 장면의 열이 서로 같은가 -----------------------------
+    # 실제로 난 사고: items 에서 열을 추측하다가 2025년·2026년 열에 같은 값이 들어갔고,
+    # 글의 핵심 주장("두 해가 다르다")을 카드가 스스로 뒤집었습니다.
+    for i, sc in enumerate(d.get("flow", {}).get("scenes", [])):
+        if sc.get("type") != "table":
+            continue
+        rows = sc.get("rows")
+        cols = sc.get("columns") or []
+        if not rows:
+            if len(cols) > 2:
+                E.append(f"flow.scenes[{i}] 열이 {len(cols)}개인데 rows 가 없습니다 — "
+                         f"렌더러가 열을 추측하다 같은 값을 넣습니다. rows 를 명시하세요")
+            continue
+        if any(len(r) != len(cols) for r in rows):
+            E.append(f"flow.scenes[{i}] 열 개수({len(cols)})와 행의 칸 수가 어긋납니다")
+        for c in range(1, len(cols)):
+            for c2 in range(c + 1, len(cols)):
+                if not all(r[c] == r[c2] for r in rows):
+                    continue
+                # 두 열이 같은 것이 메시지인 경우가 있습니다(첫 글의 "금액이 바뀌지 않습니다").
+                # 사고와 의도를 구분하려면 의도를 적어야 합니다. 적지 않으면 사고로 봅니다.
+                if sc.get("same_ok"):
+                    continue
+                E.append(f"flow.scenes[{i}] '{cols[c]}' 와 '{cols[c2]}' 열의 값이 "
+                         f"모든 행에서 같습니다 — 렌더 버그이거나, 의도라면 "
+                         f"해당 장면에 same_ok 로 이유를 적으세요")
+
     # ---- 4. 유령 금액 ----------------------------------------------------
     known = set()
     for k, v in R.items():

@@ -3,7 +3,7 @@
 사람이 판단할 항목 2개는 [MANUAL]로 남겨 마지막에 출력합니다.
 """
 import sys, json, re, pathlib, subprocess, datetime as dt
-import lint_tone, check_numbers, lint_terms
+import lint_tone, check_numbers, lint_terms, lint_sameness
 
 # 카테고리·고지문구는 categories.json 이 유일한 출처입니다.
 CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
@@ -175,6 +175,10 @@ def main(base):
         ge, _ = lint_terms.check(base)
         E += ge
         if not ge: ok("용어 규칙 통과 — 등록 용어 첫 등장에 뜻풀이 있음")
+        # --- 6c-2. 반복 패턴 (글이 서로 닮아가는 것) ---
+        se, sw = lint_sameness.check(base)
+        E += se; W += sw
+        if not se and not sw: ok("반복 패턴 없음 — 기존 글과 충분히 다름")
         # --- 6d. 나레이션 대본 (영상이 있을 때만) ---
         if (base/"video.mp4").exists():
             import build_narration

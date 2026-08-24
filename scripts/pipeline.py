@@ -81,7 +81,20 @@ color:var(--ink-soft);text-align:right}
 .tbl2 td:nth-child(2){text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl2 td:last-child{text-align:right;color:var(--cat);font-weight:900}"""
 
-POST_CSS = """.wrap{width:1080px;height:1350px;padding:76px 72px 64px;display:flex;flex-direction:column}
+POST_CSS = """.ptbl{width:100%;border-collapse:collapse;font-size:38px;
+font-variant-numeric:tabular-nums;margin-top:8px}
+.ptbl th{padding:10px 12px;border-bottom:3px solid var(--ink);font-size:26px;
+font-weight:800;color:var(--ink-soft);text-align:right}
+.ptbl th:first-child{text-align:left}
+.ptbl td{padding:18px 12px;border-bottom:2px solid var(--line);font-weight:800}
+.ptbl td.c1{text-align:right;color:var(--ink-soft)}
+.ptbl td.c2{text-align:right;color:var(--cat);font-weight:900}
+.cmpr{margin-bottom:26px}
+.cmpr .cl{font-size:32px;font-weight:800;color:var(--ink-soft);margin-bottom:6px}
+.cmpr .cv{font-size:48px;font-weight:900;color:var(--cat);margin-bottom:10px}
+.cmpr .cb{height:16px;background:var(--line);border-radius:999px;overflow:hidden}
+.cmpr .cb>i{display:block;height:100%;background:var(--cat);border-radius:999px}
+.wrap{width:1080px;height:1350px;padding:76px 72px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
 .badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;font-weight:800;padding:9px 20px;border-radius:999px}
 .through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
@@ -132,13 +145,43 @@ def shoot(pages, outdir, w, h):
 def build_images(d, base):
     m, items = d["meta"], d["items"]; n = len(items); total = n+2
     dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
+    # meta.layout 이 포스터 구성을 정합니다.
+    # 오랫동안 이 필드는 선언만 되고 아무도 읽지 않았습니다 — 그래서 모든 글의
+    # 포스터가 똑같이 나왔고, CLAUDE.md 3장의 '3종 로테이션'은 종이 위에만 있었습니다.
+    lay = m.get("layout", "list")
     gap,pad,nw,nf,lf,vf = (18,22,74,38,44,46) if n<=6 else (12,15,62,32,36,38)
-    rows = "".join(f'<div class="row" style="padding:{pad}px 26px;margin-bottom:{gap}px">'
-        f'<div class="n" style="width:{nw}px;height:{nw}px;font-size:{nf}px">{it.get("rank",i+1)}</div>'
-        f'<div class="lab" style="font-size:{lf}px">{esc(it["label"])}</div>'
-        f'<div class="val" style="font-size:{vf}px">{esc(it["value"])}</div></div>'
-        for i,it in enumerate(items))
-    src = " · ".join(dict.fromkeys(s["issuer"] for s in d["sources"]))
+    if lay == "table":
+        # 값이 두 개 이상일 때 (연도 대비 등). 번호를 빼고 표로 읽힙니다.
+        two = any(it.get("value_2026") or it.get("employed") for it in items)
+        head = ("<tr><th>구간</th><th>" + esc(m.get("col1","기준")) + "</th><th>"
+                + esc(m.get("col2","비교")) + "</th></tr>") if two else ""
+        rows = f'<table class="ptbl">{head}' + "".join(
+            f'<tr><td>{esc(it["label"])}</td>'
+            + (f'<td class="c2">{esc(it["value"])}</td>' if two else "")
+            + (f'<td class="c1">{esc(it.get("value_2026") or it.get("employed"))}</td>'
+               if two else f'<td class="c2">{esc(it["value"])}</td>')
+            + '</tr>' for it in items) + '</table>'
+    elif lay == "compare":
+        mx = max((len(re.sub(r"[^\d]", "", it["value"])) or 1) for it in items)
+        rows = "".join(
+            f'<div class="cmpr"><div class="cl">{esc(it["label"])}</div>'
+            f'<div class="cv">{esc(it["value"])}</div>'
+            f'<div class="cb"><i style="width:{min(100, len(re.sub(chr(94)+chr(92)+"d","",it["value"]))/mx*100):.0f}%"></i></div></div>'
+            for it in items)
+    else:
+        rows = "".join(f'<div class="row" style="padding:{pad}px 26px;margin-bottom:{gap}px">'
+            f'<div class="n" style="width:{nw}px;height:{nw}px;font-size:{nf}px">{it.get("rank",i+1)}</div>'
+            f'<div class="lab" style="font-size:{lf}px">{esc(it["label"])}</div>'
+            f'<div class="val" style="font-size:{vf}px">{esc(it["value"])}</div></div>'
+            for i,it in enumerate(items))
+    # 기관명이 '국민건강보험공단'과 '국민건강보험공단 법령정보'처럼 갈라져
+    # 같은 기관이 두 번 찍히고 세 줄로 깨졌습니다. 앞부분 기준으로 합칩니다.
+    _iss = []
+    for _s in d["sources"]:
+        base_name = _s["issuer"].split()[0]
+        if base_name not in _iss:
+            _iss.append(base_name)
+    src = " · ".join(_iss)
     poster = page(POST_CSS, m["category"], f'''<div class="wrap">
 <div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}{dd}</div>
 <div class="brand">@machimaza</div>
@@ -193,10 +236,16 @@ def build_images(d, base):
         if ty == "table":
             cols = sc.get("columns") or ["구간", "금액"]
             head = "".join(f"<th>{esc(c)}</th>" for c in cols)
-            body = "".join(
-                f'<tr><td>{esc(i["label"].replace("월급 ", ""))}</td>'
-                + (f'<td>{esc(i.get("employed", i["value"]))}</td>' if len(cols) > 2 else "")
-                + f'<td>{esc(i["value"])}</td></tr>' for i in items)
+            # rows 가 있으면 그대로 그립니다.
+            # items 에서 열을 추측하다가 2025년·2026년 열에 같은 값이 들어간 사고가 있었습니다.
+            if sc.get("rows"):
+                body = "".join("<tr>" + "".join(f"<td>{esc(c)}</td>" for c in r) + "</tr>"
+                               for r in sc["rows"])
+            else:
+                body = "".join(
+                    f'<tr><td>{esc(i["label"].replace("월급 ", ""))}</td>'
+                    + (f'<td>{esc(i.get("employed", i["value"]))}</td>' if len(cols) > 2 else "")
+                    + f'<td>{esc(i["value"])}</td></tr>' for i in items)
             note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
             return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot)
         raise ValueError(f"카드로 그릴 수 없는 장면 유형: {ty}")

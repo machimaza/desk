@@ -340,7 +340,13 @@ def scene_compare2(m, sc, dd):
 
 def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다.", sc=None):
     cols = (sc or {}).get("columns")
-    if cols:
+    if sc and sc.get("rows"):
+        # 명시된 행을 그대로 그립니다 (열 추측 금지)
+        head = "".join(f'<th>{esc(c)}</th>' for c in (cols or []))
+        rows = (f'<tr class="r" style="opacity:0">{head}</tr>' if head else "") + "".join(
+            '<tr class="r" style="opacity:0">' + "".join(f'<td>{esc(c)}</td>' for c in r) + '</tr>'
+            for r in sc["rows"])
+    elif cols:
         head = "".join(f'<th>{esc(c)}</th>' for c in cols)
         rows = f'<tr class="r" style="opacity:0">{head}</tr>' + "".join(
             f'<tr class="r" style="opacity:0"><td>{esc(i["label"].replace("월급 ",""))}</td>'
