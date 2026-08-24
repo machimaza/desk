@@ -11,6 +11,8 @@
   naver.txt      네이버 스마트에디터용 평문 (이미지 삽입 지점 표시)
   meta.json      제목 · 요약 · 태그 · 카테고리
   images.txt     업로드해야 할 이미지 순서
+  instagram.txt  캐러셀 캡션 + 해시태그 5개
+  threads.txt    쓰레드용 (500자 제한)
 
 사용:  python3 scripts/build_publish.py <콘텐츠폴더>
 """
@@ -66,9 +68,38 @@ def build(base):
     (out / "naver.txt").write_text(md_to_naver(body), encoding="utf-8")
 
     imgs = re.findall(r'!\[[^\]]*\]\(images/([^)]+)\)', md)
+    cards = sorted(x.name for x in (base / "images").glob("card_*.png"))
     (out / "images.txt").write_text(
-        "본문에 나오는 순서입니다. 에디터에서 이 순서대로 올리세요.\n\n"
-        + "\n".join(f"{i+1}. {n}" for i, n in enumerate(imgs)) + "\n", encoding="utf-8")
+        "[블로그] 본문에 나오는 순서입니다. 에디터에서 이 순서대로 올리세요.\n"
+        + "\n".join(f"  {i+1}. {n}" for i, n in enumerate(imgs))
+        + "\n\n[인스타 캐러셀] flow 순서 그대로 올리세요.\n"
+        + "\n".join(f"  {i+1}. {n}" for i, n in enumerate(cards))
+        + "\n\n[포스터] poster.png — 단독 공유용\n", encoding="utf-8")
+
+    # ── 인스타 · 쓰레드 ────────────────────────────────────────────
+    # 캐러셀이 기본입니다(단일 이미지 대비 저장 9배). 카드는 flow 순서 그대로.
+    # 첫 두 줄이 '더 보기' 앞에 보이는 전부이므로 거기서 승부가 납니다.
+    scenes = d.get("flow", {}).get("scenes", [])
+    hook = d.get("hook", "")
+    beats = [sc.get("screen", "") for sc in scenes[1:] if sc.get("screen")]
+    # 해시태그는 5개까지 (2025.12.18 인스타 공식 상한)
+    tags = ["#" + k.replace(" ", "") for k in m.get("keywords", [])][:4] + ["#마치마자"]
+    ig = [hook, "",
+          "\n".join(f"· {b}" for b in beats[:5]), "",
+          d.get("cta", "저장해두세요"), "",
+          "정확한 금액과 자격은 국민건강보험공단 1577-1000 에서 확인하세요.",
+          "출처는 카드 안에 표기했습니다.", "",
+          " ".join(tags)]
+    (out / "instagram.txt").write_text(
+        "# 캐러셀 캡션 — 첫 두 줄이 '더 보기' 앞에 보이는 전부입니다\n"
+        f"# 카드 {len(scenes)}장을 flow 순서대로 올리세요 (images.txt 참고)\n\n"
+        + "\n".join(ig) + "\n", encoding="utf-8")
+
+    th = [hook, ""] + [f"· {b}" for b in beats[:3]] + ["", d.get("cta", "")]
+    body_th = "\n".join(th)
+    (out / "threads.txt").write_text(
+        f"# 쓰레드 — 500자 제한. 현재 {len(body_th)}자\n"
+        "# 링크는 첫 게시물에 넣지 말고 답글에 다세요\n\n" + body_th + "\n", encoding="utf-8")
 
     # 요약은 도입부 첫 문단에서 뽑습니다 (검색결과 설명문으로 쓰임)
     first = next((p.strip() for p in body.split("\n\n")
@@ -92,7 +123,7 @@ def build(base):
 
 def main(argv):
     out, meta, imgs = build(argv[1])
-    print(f"[publish] {out}/ — tistory.html · naver.txt · meta.json · images.txt")
+    print(f"[publish] {out}/ — tistory.html · naver.txt · instagram.txt · threads.txt · meta.json · images.txt")
     print(f"  제목 {meta['제목']}")
     print(f"  태그 {', '.join(meta['태그'])}")
     print(f"  이미지 {len(imgs)}장 · 본문 {meta['본문자수']}자")

@@ -181,7 +181,7 @@ def check(base):
 
     # 영상 장면의 금액도 검산합니다. 영상은 블로그보다 오래 남고 고치기 어려우므로
     # 여기서 틀리면 회수 비용이 훨씬 큽니다.
-    for i, sc in enumerate(d.get("video", {}).get("scenes", [])):
+    for i, sc in enumerate(d.get("flow", {}).get("scenes", [])):
         for side in ("before", "after"):
             if side in sc:
                 v = _num(re.sub(r"[^\d,]", "", sc[side]["value"]))
@@ -191,7 +191,7 @@ def check(base):
             na = _num(re.sub(r"[^\d,]", "", sc["after"]["value"]))
             want = int(nb * ik["경감률"] // 10 * 10)
             if abs(want - na) > 10:
-                E.append(f"video.scenes[{i}] 경감 후 금액 불일치: 계산 {want:,} ≠ 표기 {na:,.0f}")
+                E.append(f"flow.scenes[{i}] 경감 후 금액 불일치: 계산 {want:,} ≠ 표기 {na:,.0f}")
         if sc.get("big"):
             for tok in re.findall(r"[\d,]+", sc["big"]):
                 if tok.strip(","):

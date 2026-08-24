@@ -155,7 +155,7 @@
   ],
   "narration_hook": "회사가 절반을 내주던 구조가 사라집니다.",
   "narration_outro": "기한은 고지서 납부기한에서 두 달. 놓치면 되돌릴 방법이 없습니다.",
-  "video": {
+  "flow": {
     "scenes": [
       {
         "type": "hook",

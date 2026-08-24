@@ -89,8 +89,8 @@ def build(base):
     for i, (cap, dur) in enumerate(caps):
         if flow:
             # flow 에서는 장면마다 음성이 명시돼 있습니다.
-            voice = d["video"]["scenes"][i].get("voice", "")
-            where = f"video.scenes[{i}].voice"
+            voice = d["flow"]["scenes"][i].get("voice", "")
+            where = f"flow.scenes[{i}].voice"
         elif i == 0:
             voice = d.get("narration_hook", "")
             where = "narration_hook"

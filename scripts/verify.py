@@ -64,6 +64,37 @@ def main(base):
     else:
         W.append("axis 없음 — 자기 대입 장치가 없어 저장·공유율이 낮을 수 있습니다")
 
+    # --- 1b. flow — 영상·카드가 공유하는 이야기 구조 ------------------
+    # 첫 영상과 첫 카드가 둘 다 "가격 비교만 하고 끝"이었습니다.
+    # 원인은 items 를 그대로 찍은 것이고, 그래서 flow 를 필수로 만듭니다.
+    if not d["meta"].get("throughline"):
+        E.append("meta.throughline 없음 — 상단 배지에 둘 관통 단어가 필요합니다 "
+                 "(기준: 공단에 전화해서 말해야 하는 단어)")
+    fl = d.get("flow", {}).get("scenes")
+    if not fl:
+        E.append("flow.scenes 없음 — 영상·카드를 items 로 찍던 방식은 폐기했습니다")
+    else:
+        if len(fl) < 5:
+            E.append(f"flow 장면 {len(fl)}개 — 5개 미만이면 이야기가 되지 않습니다")
+        if fl[0].get("type") != "hook":
+            E.append("flow 첫 장면이 hook 이 아닙니다")
+        kinds = [x.get("type") for x in fl]
+        # 이 검사가 존재하는 이유: '가격 비교만 하고 끝' 을 기계가 막기 위해서입니다.
+        if "list" not in kinds:
+            E.append("flow 에 list 장면이 없음 — '그래서 뭘 해야 하나'에 답하는 장면이 "
+                     "하나도 없습니다. 금액만 나열하고 끝나는 구조입니다")
+        if kinds.count("compare") + kinds.count("table") == len(fl) - 1:
+            E.append("flow 가 금액 장면으로만 이루어져 있습니다")
+        for i, x in enumerate(fl):
+            for k in ("screen", "voice"):
+                if not x.get(k):
+                    E.append(f"flow.scenes[{i}]({x.get('type')}) 의 {k} 가 비어 있습니다")
+        if not E:
+            ok(f"flow {len(fl)}장면 — {' → '.join(kinds)}")
+    for it in d["items"]:
+        if not it.get("wage"):
+            W.append(f"'{it['label']}' 에 wage 없음 — 금액을 산식으로 검산할 수 없습니다")
+
     # --- 2. 출처 등급 / 최신성 ---
     today = dt.date.today()
     for s in d["sources"]:

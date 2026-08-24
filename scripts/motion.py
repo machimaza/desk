@@ -376,7 +376,7 @@ def build_scenes(d):
     # 블로그는 '전부'를 담고 영상은 '판단 순서'를 담습니다. 하는 일이 다릅니다.
     if struct == "flow":
         S = []
-        for sc in d["video"]["scenes"]:
+        for sc in d["flow"]["scenes"]:
             ty = sc["type"]
             if ty == "hook":
                 S.append(scene_title(m, sc["screen"], dday_for(sc)))

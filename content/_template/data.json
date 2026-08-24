@@ -1,0 +1,90 @@
+{
+  "_읽어주세요": [
+    "이 파일 하나가 블로그·카드·영상 전부의 원본입니다.",
+    "숫자는 여기에 직접 타이핑하지 말고 rates.json 값으로 계산해 넣으세요 — check_numbers 가 검산합니다.",
+    "flow.scenes 는 영상과 인스타 카드가 함께 씁니다. 금액 장면만으로 채우면 게이트가 막습니다."
+  ],
+  "meta": {
+    "id": "YYYY-MM-DD-주제-슬러그",
+    "title": "짧은 제목 (카드·영상용)",
+    "subtitle": "한 줄 설명",
+    "category": "건강보험",
+    "throughline": "관통 단어 — 공단에 전화해서 말해야 하는 단어",
+    "format": "hybrid",
+    "layout": "table",
+    "video_structure": "flow",
+    "publish_date": "YYYY-MM-DD",
+    "axis": {
+      "type": "소득구간",
+      "_허용": "소득구간·연령대·가구형태·지역·직업형태·생활패턴 중 하나",
+      "buckets": ["구간1", "구간2", "구간3", "구간4", "구간5"]
+    },
+    "gateway": true,
+    "keywords": ["검색어1", "검색어2", "검색어3", "검색어4"]
+  },
+  "hook": "첫 화면 자막. 사실 한 문장.",
+  "summary": "카드 마지막 장에 들어갈 요약.",
+  "cta": "지금 저장해두세요. …",
+  "disclaimer_key": "health",
+
+  "items": [
+    {
+      "rank": 1,
+      "label": "구간 이름",
+      "wage": 0,
+      "value": "0원",
+      "employed": "0원",
+      "detail": "0 × 0% = 0원. 산식을 문장으로도 남깁니다.",
+      "caption": "이 구간에서 사람들이 놓치는 것 한 줄",
+      "narration": "화면과 다른 말. 사실 말고 해석.",
+      "source_id": "S001"
+    }
+  ],
+
+  "flow": {
+    "_규칙": [
+      "표준 흐름: 자격 → 금액 → 기한 → 신청 방법 → 지금 할 일",
+      "가격은 여러 장면 중 하나일 뿐입니다. list 장면이 없으면 게이트 실패.",
+      "screen = 화면에 뜨는 사실 / voice = 음성이 말하는 해석. 같으면 게이트 실패.",
+      "라벨은 그 화면만 보고 뜻이 통해야 합니다. '깎기 전' 같은 라벨은 실패한 라벨입니다."
+    ],
+    "scenes": [
+      { "type": "hook", "screen": "도입 자막", "voice": "화면과 다른 한 문장" },
+      { "type": "fact", "label": "누가 되나", "big": "핵심 조건", "sub": "부연 한 줄",
+        "screen": "화면 자막", "voice": "해석" },
+      { "type": "compare", "label": "얼마인가",
+        "before": { "label": "산식이 보이는 라벨", "value": "0원" },
+        "after":  { "label": "결과가 보이는 라벨", "value": "0원" },
+        "screen": "화면 자막", "voice": "해석" },
+      { "type": "table", "columns": ["구간", "비교 대상", "이 제도"],
+        "note": "표가 말하는 바 한 줄",
+        "screen": "화면 자막", "voice": "해석" },
+      { "type": "fact", "label": "언제까지", "big": "기한", "sub": "무엇 기준인지",
+        "screen": "화면 자막", "voice": "해석" },
+      { "type": "list", "label": "어떻게 신청하나",
+        "items": ["경로1", "경로2", "경로3"],
+        "note": "안 되는 경로가 있으면 여기에",
+        "screen": "화면 자막", "voice": "해석" },
+      { "type": "list", "label": "지금 할 일",
+        "items": ["행동1", "행동2"],
+        "note": "이걸로 판단이 되는 이유",
+        "screen": "지금 캡처해두세요", "voice": "마지막 한마디" }
+    ]
+  },
+
+  "allow_pct": [],
+  "_allow_pct_출처": "원장에 없는 비율을 쓸 때만. 출처를 함께 적으세요.",
+  "derived": [],
+
+  "sources": [
+    {
+      "id": "S001",
+      "title": "원문 제목",
+      "issuer": "발행 기관",
+      "url": "https://…go.kr 또는 or.kr",
+      "tier": 1,
+      "effective_date": "YYYY-MM-DD",
+      "verified_at": "YYYY-MM-DD"
+    }
+  ]
+}

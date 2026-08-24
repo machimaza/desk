@@ -50,7 +50,27 @@ font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
 .head{font-weight:900;line-height:1.2;letter-spacing:-.035em}
 .big{font-size:120px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:24px 0}
 .desc{margin-top:30px;font-size:34px;font-weight:500;line-height:1.55;color:var(--ink-soft)}
-.foot{font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);padding-top:22px}"""
+.foot{font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);padding-top:22px}
+.head,.desc,.sub2,.li,.note{word-break:keep-all}
+.sub2{margin-top:18px;font-size:34px;font-weight:700;color:var(--ink-soft);line-height:1.45}
+.big{white-space:nowrap;font-variant-numeric:tabular-nums}
+.lab2{font-size:28px;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
+.v2{font-size:66px;font-weight:900;letter-spacing:-.04em;white-space:nowrap;
+font-variant-numeric:tabular-nums;margin-bottom:12px}
+.bar{height:20px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--cat);border-radius:999px}
+.cmp{display:flex;flex-direction:column;gap:34px;margin-top:26px}
+.li{display:flex;align-items:center;gap:18px;font-size:44px;font-weight:800;margin-bottom:20px}
+.li b{width:14px;height:14px;border-radius:999px;background:var(--cat);flex:none}
+.note{margin-top:24px;font-size:30px;font-weight:700;color:var(--ink-soft);
+border-left:5px solid var(--line);padding-left:18px;line-height:1.45}
+.tbl2{width:100%;border-collapse:collapse;font-size:32px;font-variant-numeric:tabular-nums}
+.tbl2 th{padding:10px;border-bottom:3px solid var(--ink);font-size:26px;font-weight:800;
+color:var(--ink-soft);text-align:right}
+.tbl2 th:first-child{text-align:left}
+.tbl2 td{padding:14px 10px;border-bottom:2px solid var(--line);font-weight:700}
+.tbl2 td:nth-child(2){text-align:right;color:var(--ink-soft);font-weight:800}
+.tbl2 td:last-child{text-align:right;color:var(--cat);font-weight:900}"""
 
 POST_CSS = """.wrap{width:1080px;height:1350px;padding:76px 72px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
@@ -122,28 +142,69 @@ def build_images(d, base):
 <div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}</div>
 <div class="body">{kicker}<div class="head" style="font-size:{hf}px">{head}</div>{big}{desc}</div>
 <div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
+    # 카드는 영상과 같은 flow 를 그립니다.
+    # 예전에는 items 를 그대로 카드로 찍어서, 카드 다섯 장이 전부 가격표였습니다.
+    # 영상에서 고친 문제(자격·기한·신청 방법이 없음)가 카드에도 똑같이 있었습니다.
+    def shell(body, foot):
+        th = (f"<div class='through'>{esc(m['throughline'])}</div>"
+              if m.get("throughline") else "")
+        return page(CARD_CSS, m["category"], f'''<div class="wrap">
+<div class="top"><div class="badge">{esc(m["category"])}</div>{th}</div>
+<div class="body">{body}</div>
+<div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
+
+    def card_for(sc, idx, last):
+        ty, foot = sc["type"], ("@machimaza" if last else "넘겨서 확인하세요 →")
+        cap = f'<div class="desc">{esc(sc.get("screen",""))}</div>'
+        if ty == "hook":
+            return shell(f'<div class="head" style="font-size:{az(m["title"],92,1.1,58)}px">'
+                         f'{esc(m["title"])}</div>{cap}', foot)
+        if ty == "fact":
+            sub = f'<div class="sub2">{esc(sc["sub"])}</div>' if sc.get("sub") else ""
+            return shell(f'<div class="kicker">{esc(sc["label"])}</div>'
+                         f'<div class="big" style="font-size:{max(72, 128 - len(sc["big"]) * 5)}px">'
+                         f'{esc(sc["big"])}</div>{sub}{cap}', foot)
+        if ty == "compare":
+            b, a = sc["before"], sc["after"]
+            nb = re.sub(r"[^\d]", "", b["value"]); na = re.sub(r"[^\d]", "", a["value"])
+            r = (int(na) / int(nb) * 100) if nb and int(nb) else 100
+            return shell(
+                f'<div class="head" style="font-size:56px">{esc(sc["label"])}</div><div class="cmp">'
+                f'<div><div class="lab2">{esc(b["label"])}</div>'
+                f'<div class="v2" style="color:var(--ink-soft)">{esc(b["value"])}</div>'
+                f'<div class="bar"><i style="width:100%;background:var(--line)"></i></div></div>'
+                f'<div><div class="lab2">{esc(a["label"])}</div>'
+                f'<div class="v2" style="color:var(--cat)">{esc(a["value"])}</div>'
+                f'<div class="bar"><i style="width:{r:.1f}%"></i></div></div></div>{cap}', foot)
+        if ty == "list":
+            lis = "".join(f'<div class="li"><b></b><span>{esc(x)}</span></div>' for x in sc["items"])
+            note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
+            return shell(f'<div class="head" style="font-size:56px">{esc(sc["label"])}</div>'
+                         f'<div style="margin-top:34px">{lis}</div>{note}{cap}', foot)
+        if ty == "table":
+            cols = sc.get("columns") or ["구간", "금액"]
+            head = "".join(f"<th>{esc(c)}</th>" for c in cols)
+            body = "".join(
+                f'<tr><td>{esc(i["label"].replace("월급 ", ""))}</td>'
+                + (f'<td>{esc(i.get("employed", i["value"]))}</td>' if len(cols) > 2 else "")
+                + f'<td>{esc(i["value"])}</td></tr>' for i in items)
+            note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
+            return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot)
+        raise ValueError(f"카드로 그릴 수 없는 장면 유형: {ty}")
+
+    scenes = d.get("flow", {}).get("scenes")
     pages = [("poster.png", poster)]
-    pages.append(("card_01.png", card(1, f'<div class="kicker">{esc(d["hook"])}</div>',
-        esc(m["title"]), "", f'<div class="desc">{esc(d["summary"])}</div>',
-        "넘겨서 확인하세요 →", az(m["title"],92,1.1,60))))
-    for i,it in enumerate(items):
-        iss = next(s["issuer"] for s in d["sources"] if s["id"]==it["source_id"])
-        pages.append((f"card_{i+2:02d}.png", card(i+2, f'<div class="kicker">{it.get("rank",i+1)}</div>',
-            esc(it["label"]), f'<div class="big">{esc(it["value"])}</div>',
-            f'<div class="desc">{esc(it["detail"])}</div>', esc(iss), az(it["label"],78,1.4,52))))
-    pages.append((f"card_{total:02d}.png", card(total, '<div class="kicker">정리하면</div>',
-        esc(d["summary"]), "", f'<div class="desc">{esc(d.get("cta",""))}<br>전문은 프로필 링크에서.</div>',
-        "@machimaza", az(d["summary"],74,0.85,46))))
+    if scenes:
+        for i, sc in enumerate(scenes):
+            pages.append((f"card_{i+1:02d}.png", card_for(sc, i, i == len(scenes) - 1)))
+    else:
+        raise ValueError("data.json 에 flow.scenes 가 없습니다 — 카드를 items 로 찍던 방식은 폐기했습니다")
+
     w = shoot(pages, base/"images", 1080, 1350)
-    alt = []
-    for f in w:
-        if f.name=="poster.png": alt.append(f'{f.name}\t{m["category"]} 정보 카드. {m["title"]}.')
-        elif f.name=="card_01.png": alt.append(f'{f.name}\t{m["title"]} 표지. {d["hook"]}')
-        else:
-            try:
-                it = items[int(f.name.split("_")[1].split(".")[0])-2]
-                alt.append(f'{f.name}\t{it["label"]} {it["value"]}. {it["detail"][:60]}')
-            except Exception: alt.append(f'{f.name}\t{m["title"]} 요약. {d["summary"][:60]}')
+    alt = [f'poster.png\t{m["category"]} 정보 카드. {m["title"]}.']
+    for i, sc in enumerate(scenes):
+        t = sc.get("label") or m["title"]
+        alt.append(f'card_{i+1:02d}.png\t{t}. {sc.get("screen","")}')
     (base/"images"/"alt.txt").write_text("\n".join(alt), encoding="utf-8")
     print(f"[images] {len(w)}장 + alt.txt")
 
