@@ -83,7 +83,8 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .steptx{font-size:62px;font-weight:800;line-height:1.35;letter-spacing:-.03em;word-break:keep-all}
 .tbl{width:100%;border-collapse:collapse;font-size:36px}
 .tbl td{padding:16px 12px;border-bottom:2px solid var(--line);font-weight:700}
-.tbl td:last-child{text-align:right;color:var(--cat);font-weight:900}
+.tbl td.c1{text-align:right;color:var(--ink-soft);font-weight:800}
+.tbl td.c2{text-align:right;color:var(--cat);font-weight:900}
 .tbl th{padding:12px;border-bottom:3px solid var(--ink);font-size:30px;
   font-weight:800;color:var(--ink-soft);text-align:right}
 .tbl th:first-child{text-align:left}
@@ -391,8 +392,11 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     if sc and sc.get("rows"):
         # 명시된 행을 그대로 그립니다 (열 추측 금지)
         head = "".join(f'<th>{esc(c)}</th>' for c in (cols or []))
+        ac = sc.get("accent_col", len(cols or []) - 1)
         rows = (f'<tr class="r" style="opacity:0">{head}</tr>' if head else "") + "".join(
-            '<tr class="r" style="opacity:0">' + "".join(f'<td>{esc(c)}</td>' for c in r) + '</tr>'
+            '<tr class="r" style="opacity:0">' + "".join(
+                f'<td class="{"c2" if k == ac else ("c1" if k else "")}">{esc(c)}</td>'
+                for k, c in enumerate(r)) + '</tr>'
             for r in sc["rows"])
     elif cols:
         head = "".join(f'<th>{esc(c)}</th>' for c in cols)

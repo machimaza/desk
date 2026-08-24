@@ -97,8 +97,8 @@ border-left:5px solid var(--line);padding-left:18px;line-height:1.45}
 color:var(--ink-soft);text-align:right}
 .tbl2 th:first-child{text-align:left}
 .tbl2 td{padding:14px 10px;border-bottom:2px solid var(--line);font-weight:700}
-.tbl2 td:nth-child(2){text-align:right;color:var(--ink-soft);font-weight:800}
-.tbl2 td:last-child{text-align:right;color:var(--cat);font-weight:900}"""
+.tbl2 td.c1{text-align:right;color:var(--ink-soft);font-weight:800}
+.tbl2 td.c2{text-align:right;color:var(--cat);font-weight:900}"""
 
 POST_CSS = """.ptbl{width:100%;border-collapse:collapse;font-size:38px;
 font-variant-numeric:tabular-nums;margin-top:8px}
@@ -302,8 +302,15 @@ def build_images(d, base):
             # rows 가 있으면 그대로 그립니다.
             # items 에서 열을 추측하다가 2025년·2026년 열에 같은 값이 들어간 사고가 있었습니다.
             if sc.get("rows"):
-                body = "".join("<tr>" + "".join(f"<td>{esc(c)}</td>" for c in r) + "</tr>"
-                               for r in sc["rows"])
+                # accent_col — 어느 열이 '지금 봐야 할 값'인지 작성자가 정합니다.
+                # 기본값(마지막 열)에 맡겼더니 설명은 2025년을 가리키는데
+                # 강조색은 2026년에 붙어 눈과 글이 따로 놀았습니다.
+                ac = sc.get("accent_col", len(cols) - 1)
+                body = "".join(
+                    "<tr>" + "".join(
+                        f'<td class="{"c2" if k == ac else ("c1" if k else "")}">{esc(c)}</td>'
+                        for k, c in enumerate(r)) + "</tr>"
+                    for r in sc["rows"])
             else:
                 body = "".join(
                     f'<tr><td>{esc(i["label"].replace("월급 ", ""))}</td>'
