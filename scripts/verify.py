@@ -3,7 +3,7 @@
 사람이 판단할 항목 2개는 [MANUAL]로 남겨 마지막에 출력합니다.
 """
 import sys, json, re, pathlib, subprocess, datetime as dt
-import lint_tone, check_numbers
+import lint_tone, check_numbers, lint_terms
 
 # CLAUDE.md v3 §8 "고정 문구"와 1:1 대응. 여기를 고칠 때는 CLAUDE.md도 같이 고칠 것.
 DISC = {
@@ -108,6 +108,10 @@ def main(base):
         ne, nw = check_numbers.check(base)
         E += ne; W += nw
         if not ne: ok("수치 정합성 통과 — 본문 숫자가 원장과 일치")
+        # --- 6c. 용어 뜻풀이 (틀린 글과 안 읽히는 글은 똑같이 쓸모없음) ---
+        ge, _ = lint_terms.check(base)
+        E += ge
+        if not ge: ok("용어 규칙 통과 — 등록 용어 첫 등장에 뜻풀이 있음")
     else:
         E.append("blog.md 없음")
 
