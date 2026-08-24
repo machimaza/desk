@@ -1,0 +1,28 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<style>__TOKENS__
+/* 세이프에어리어: 쇼츠/틱톡 UI가 덮는 영역을 피합니다.
+   상단 210px(제목·채널) · 하단 430px(캡션·음원·버튼) · 우측 190px(버튼 열) */
+.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;
+  display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
+.badge{background:var(--cat);color:#fff;font-size:34px;font-weight:900;padding:14px 30px;border-radius:999px}
+.pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
+.body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
+.head{font-size:__HF__px;font-weight:900;line-height:1.18;letter-spacing:-.035em}
+.big{font-size:150px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:36px 0}
+.desc{margin-top:44px;font-size:__DF__px;font-weight:500;line-height:1.55;color:var(--ink-soft)}
+.tbl{width:100%;border-collapse:collapse;font-size:36px}
+.tbl td{padding:16px 12px;border-bottom:2px solid var(--line);font-weight:700}
+.tbl td:last-child{text-align:right;color:var(--cat);font-weight:900}
+.dday{position:absolute;top:210px;right:100px;background:var(--ink);color:var(--paper);
+  font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
+/* 자막은 세이프에어리어 안쪽(하단 460px 위)에 고정 */
+.cap{position:absolute;left:100px;right:190px;bottom:460px;text-align:left;
+  font-size:46px;font-weight:800;color:var(--ink);line-height:1.35;
+  border-left:8px solid var(--cat);padding-left:26px}
+.brand{position:absolute;left:100px;bottom:625px;font-size:26px;font-weight:800;color:var(--ink-soft)}
+</style></head><body class="cat-__CAT__"><div class="wrap">
+  <div class="top"><div class="badge">__CAT__</div><div class="pg">__PG__</div></div>
+  <div class="body">__CONTENT__</div>
+</div>__DDAY__<div class="cap">__CAPTION__</div><div class="brand">@machimaza</div></body></html>

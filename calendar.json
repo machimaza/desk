@@ -1,0 +1,18 @@
+{
+  "_comment": "역산 캘린더. 이벤트 발생일에서 lead_days를 빼면 발행일이 나옵니다.",
+  "events": [
+    {"name":"연말정산 간소화 서비스 개통","date":"01-15","lead_days":30,"category":"재테크"},
+    {"name":"설 연휴 응급실·약국 운영","date":"02-10","lead_days":7,"category":"생활꿀팁"},
+    {"name":"이사 성수기","date":"03-01","lead_days":30,"category":"생활꿀팁"},
+    {"name":"환절기 알레르기·미세먼지","date":"03-20","lead_days":14,"category":"건강"},
+    {"name":"종합소득세 신고","date":"05-31","lead_days":21,"category":"재테크"},
+    {"name":"장마·습도 관리","date":"06-25","lead_days":14,"category":"생활꿀팁"},
+    {"name":"폭염 온열질환 주의","date":"07-20","lead_days":14,"category":"건강"},
+    {"name":"추석 연휴 대비","date":"09-15","lead_days":14,"category":"생활꿀팁"},
+    {"name":"독감 백신 접종 시작","date":"10-01","lead_days":14,"category":"건강"},
+    {"name":"김장철","date":"11-15","lead_days":14,"category":"생활꿀팁"},
+    {"name":"건강검진 마감 몰림","date":"12-31","lead_days":60,"category":"건강"},
+    {"name":"연말 기부금 세액공제 마감","date":"12-31","lead_days":30,"category":"재테크"}
+  ],
+  "_note": "40~50개까지 채우는 것이 목표. 정부 보도자료 큐가 나머지를 메웁니다."
+}

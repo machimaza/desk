@@ -1,0 +1,20 @@
+# 산출물 — 용량이 크고 재생성 가능. 원본은 data.json 입니다.
+content/**/video.mp4
+content/**/cover.png
+content/**/images/*.png
+assets/*.mp3
+assets/*.wav
+
+# 파이프라인 테스트 폴더
+content/_pipeline-test/images/
+content/_pipeline-test/*.mp4
+
+# 파이썬
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,18 @@
+/* 마치마자 브랜드 토큰 — 모든 이미지/영상 렌더링이 이 파일 하나를 참조합니다 */
+:root{
+  --ink:#16202E;          /* 본문 */
+  --ink-soft:#4A5666;     /* 보조 텍스트 */
+  --paper:#FBF8F3;        /* 배경(따뜻한 종이) */
+  --paper-2:#F2ECE1;      /* 카드 배경 */
+  --line:#DED5C6;
+  --accent:#E8A33D;       /* 마치마자 시그니처 앰버 */
+  --cat-health:#2E6B5E;
+  --cat-money:#1F5C8B;
+  --cat-life:#C2703D;
+  --font: "Noto Sans CJK KR","Noto Sans KR",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--paper);color:var(--ink)}
+.cat-건강{--cat:var(--cat-health)}
+.cat-재테크{--cat:var(--cat-money)}
+.cat-생활꿀팁{--cat:var(--cat-life)}
