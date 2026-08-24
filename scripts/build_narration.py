@@ -83,10 +83,15 @@ def build(base):
         c = re.search(r'<div class="cap"[^>]*>(.*?)</div>', html, re.S)
         caps.append((re.sub(r"<[^>]+>", "", c.group(1)).strip() if c else "", anim + hold))
 
+    flow = m.get("video_structure") == "flow"
     seq = list(reversed(d["items"])) if m.get("video_structure") == "countdown" else d["items"]
     E, rows = [], []
     for i, (cap, dur) in enumerate(caps):
-        if i == 0:
+        if flow:
+            # flow 에서는 장면마다 음성이 명시돼 있습니다.
+            voice = d["video"]["scenes"][i].get("voice", "")
+            where = f"video.scenes[{i}].voice"
+        elif i == 0:
             voice = d.get("narration_hook", "")
             where = "narration_hook"
         elif i == len(caps) - 1:

@@ -37,7 +37,7 @@ CSS = """
   --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
-.cat-건강{--cat:var(--cat-health)}
+.cat-건강보험료{--cat:var(--cat-health)}
 .cat-재테크{--cat:var(--cat-money)}
 .cat-생활꿀팁{--cat:var(--cat-life)}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
@@ -61,6 +61,16 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .cmp .lab2{font-size:40px;font-weight:800;color:var(--ink-soft);margin-bottom:14px}
 .cmp .v2{font-size:84px;font-weight:900;letter-spacing:-.04em;white-space:nowrap;
   font-variant-numeric:tabular-nums;margin-bottom:16px}
+.sub{font-size:44px;font-weight:700;color:var(--ink-soft);
+  margin-top:10px;word-break:keep-all;line-height:1.4}
+.cmp .lab2{font-size:38px;font-weight:800;color:var(--ink-soft);margin-bottom:12px;
+  word-break:keep-all}
+.li{display:flex;align-items:center;gap:24px;font-size:56px;font-weight:800;
+  margin-bottom:26px;word-break:keep-all}
+.li .dot{width:18px;height:18px;border-radius:999px;background:var(--cat);flex:none}
+.note{margin-top:28px;font-size:40px;font-weight:800;color:var(--ink-soft);
+  border-left:6px solid var(--line);padding-left:20px;word-break:keep-all}
+.note.warn{color:#A03A28;border-left-color:#A03A28}
 .stepno{width:104px;height:104px;border-radius:999px;background:var(--cat);color:#fff;
   font-size:56px;font-weight:900;display:flex;align-items:center;justify-content:center;
   margin-bottom:34px}
@@ -218,14 +228,99 @@ def scene_step(m, it, pg, no, dd):
     return page(m["category"], inner, js), 2.0, 3.9
 
 
-def scene_table(m, items, dd):
+def scene_fact(m, sc, dd):
+    """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
+    inner = f'''<div class="wrap">
+<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="body">
+  <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
+  <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
+  <div class="sub" id="s">{esc(sc.get("sub",""))}</div>
+</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+<div class="brand">@machimaza</div>'''
+    js = '''window.draw=(t)=>{
+  enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
+  const p = easeOut(seg(t,0.35,0.6));
+  const b = document.getElementById('b');
+  b.style.opacity = p; b.style.transform = 'scale('+(0.86+0.14*p).toFixed(3)+')';
+  enter(document.getElementById('s'), easeOut(seg(t,0.8,0.5)));
+  enter(document.getElementById('c'), easeOut(seg(t,1.15,0.5)));
+};'''
+    return page(m["category"], inner, js), 1.9, 3.9
+
+
+def scene_list(m, sc, dd):
+    """항목이 하나씩 등장 — 신청 방법처럼 '그래서 뭘 하나'에 답하는 장면."""
+    lis = "".join(f'<div class="li" style="opacity:0"><span class="dot"></span>'
+                  f'<span>{esc(x)}</span></div>' for x in sc["items"])
+    nk = " warn" if sc.get("note_kind") == "warn" else ""
+    note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
+    inner = f'''<div class="wrap">
+<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="body">
+  <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
+  <div style="margin-top:44px">{lis}</div>{note}
+</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+<div class="brand">@machimaza</div>'''
+    js = '''window.draw=(t)=>{
+  enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
+  const ls = document.querySelectorAll('.li');
+  ls.forEach((e,i)=>{ enter(e, easeOut(seg(t, 0.35+0.22*i, 0.45))); });
+  const n = document.getElementById('n');
+  if(n) enter(n, easeOut(seg(t, 0.35+0.22*ls.length, 0.5)));
+  enter(document.getElementById('c'), easeOut(seg(t, 0.5+0.22*ls.length, 0.5)));
+};'''
+    return page(m["category"], inner, js), 0.55 * len(sc["items"]) + 1.5, 3.0
+
+
+def scene_compare2(m, sc, dd):
+    """두 값을 나란히. 라벨을 데이터에서 그대로 받습니다.
+
+    이전 버전은 '깎기 전 / 실제 내는 금액' 이라고만 썼는데,
+    무엇을 깎기 전인지 화면 어디에도 없었습니다. 산식이 라벨에 보여야 합니다.
+    """
+    b, a = sc["before"], sc["after"]
+    nb, ub = parse_amount(b["value"])
+    na, ua = parse_amount(a["value"])
+    inner = f'''<div class="wrap">
+<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="body">
+  <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
+  <div class="cmp">
+    <div>
+      <div class="lab2">{esc(b["label"])}</div>
+      <div class="v2" id="n1" style="color:var(--ink-soft)">0</div>
+      <div class="bar"><div class="fill" id="b1" style="width:0%;background:var(--line)"></div></div>
+    </div>
+    <div>
+      <div class="lab2">{esc(a["label"])}</div>
+      <div class="v2" id="n2" style="color:var(--cat)">0</div>
+      <div class="bar"><div class="fill" id="b2" style="width:0%"></div></div>
+    </div>
+  </div>
+</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+<div class="brand">@machimaza</div>'''
+    ratio = (na / nb) if nb else 1.0
+    js = f'''window.draw=(t)=>{{
+  enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
+  const p1 = seg(t,0.3,1.1), p2 = seg(t,0.95,1.3);
+  setNum(document.getElementById('n1'), {nb or 0}, p1, {json.dumps(ub)}, 10);
+  setBar(document.getElementById('b1'), 1.0, p1);
+  setNum(document.getElementById('n2'), {na or 0}, p2, {json.dumps(ua)}, 10);
+  setBar(document.getElementById('b2'), {ratio:.4f}, p2);
+  enter(document.getElementById('c'), easeOut(seg(t,1.7,0.5)));
+}};'''
+    return page(m["category"], inner, js), 2.5, 3.4
+
+
+def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다."):
     rows = "".join(
         f'<tr class="r" style="opacity:0"><td>{esc(i["label"])}</td>'
         f'<td>{esc(i["value"])}</td></tr>' for i in items)
     inner = f'''<div class="wrap">
 <div class="top"><div class="badge">{esc(m["category"])}</div><div class="pg">전체</div></div>
 <div class="body"><table class="tbl">{rows}</table></div>
-</div>{dd}<div class="cap" id="c">지금 캡처해두세요. 신청할 때 다시 필요합니다.</div>
+</div>{dd}<div class="cap" id="c">{esc(cap)}</div>
 <div class="brand">@machimaza</div>'''
     js = '''window.draw=(t)=>{
   const rs = document.querySelectorAll('.r');
@@ -241,6 +336,26 @@ def build_scenes(d):
     m, items = d["meta"], d["items"]
     dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
     struct = m.get("video_structure", "countdown")
+
+    # flow — 영상을 items 에서 파생시키지 않고 data.json 의 video.scenes 대로 그립니다.
+    # 블로그는 '전부'를 담고 영상은 '판단 순서'를 담습니다. 하는 일이 다릅니다.
+    if struct == "flow":
+        S = []
+        for sc in d["video"]["scenes"]:
+            ty = sc["type"]
+            if ty == "hook":
+                S.append(scene_title(m, sc["screen"], dd))
+            elif ty == "fact":
+                S.append(scene_fact(m, sc, dd))
+            elif ty == "compare":
+                S.append(scene_compare2(m, sc, dd))
+            elif ty == "list":
+                S.append(scene_list(m, sc, dd))
+            elif ty == "table":
+                S.append(scene_table(m, items, dd, sc["screen"]))
+            else:
+                raise ValueError(f"모르는 장면 유형: {ty}")
+        return S
     nums = [parse_amount(i["value"])[0] or 0 for i in items]
     mx = max(nums) or 1
     S = [scene_title(m, d["hook"], dd)]

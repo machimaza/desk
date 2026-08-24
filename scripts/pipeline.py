@@ -12,12 +12,12 @@ T = """:root{--ink:#16202E;--ink-soft:#4A5666;--paper:#FBF8F3;--paper-2:#F2ECE1;
 --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
 body{font-family:var(--font);background:var(--paper);color:var(--ink)}
-.cat-건강{--cat:var(--cat-health)}.cat-재테크{--cat:var(--cat-money)}.cat-생활꿀팁{--cat:var(--cat-life)}"""
+.cat-건강보험료{--cat:var(--cat-health)}.cat-재테크{--cat:var(--cat-money)}.cat-생활꿀팁{--cat:var(--cat-life)}"""
 
 AXES = {"소득구간","연령대","가구형태","지역","직업형태","생활패턴"}
 BANNED = {"자산순위","자산 순위","질병위험도","질병 위험도","외모","체형"}
 DISC = {"health":"증상이 지속되거나 우려된다면 의료진과 상담","money":"투자 권유가 아닙니다"}
-CAT2KEY = {"건강":"health","재테크":"money","생활꿀팁":"none"}
+CAT2KEY = {"건강보험료":"health","재테크":"money","생활꿀팁":"none"}
 _D = r"(암|당뇨|고혈압|혈압|혈당|아토피|치매|관절염|골다공증|비염|위염|간염|통풍|불면증|우울증|탈모|디스크|염증|콜레스테롤)"
 _E = r"(치료|완치|낫는|낫습|효능|예방|개선|회복|잡아|없애|제거|낮춰|줄여)"
 FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시 알아야|절대 놓치",
