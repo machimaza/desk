@@ -78,6 +78,11 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .tbl{width:100%;border-collapse:collapse;font-size:36px}
 .tbl td{padding:16px 12px;border-bottom:2px solid var(--line);font-weight:700}
 .tbl td:last-child{text-align:right;color:var(--cat);font-weight:900}
+.tbl th{padding:12px;border-bottom:3px solid var(--ink);font-size:30px;
+  font-weight:800;color:var(--ink-soft);text-align:right}
+.tbl th:first-child{text-align:left}
+.tbl td.same{text-align:right;color:var(--ink-soft);font-weight:800}
+.tbl{font-variant-numeric:tabular-nums}
 .dd{position:absolute;top:210px;right:100px;background:var(--ink);color:var(--paper);
   font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
 .cap{position:absolute;left:100px;right:190px;bottom:460px;font-size:46px;font-weight:800;
@@ -137,7 +142,7 @@ def page(cat, inner, script):
 
 def scene_title(m, hook, dd):
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
 <div class="body">
   <div class="kicker" id="k">{esc(m["category"])}</div>
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
@@ -154,7 +159,7 @@ def scene_title(m, hook, dd):
 def scene_value(m, it, pg, ratio, dd):
     num, unit = parse_amount(it["value"])
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
 <div class="body">
   <div class="head" id="l" style="font-size:{max(58, 100 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="big" id="n">0</div>
@@ -176,7 +181,7 @@ def scene_compare(m, it, pg, base_num, dd):
     num, unit = parse_amount(it["value"])
     gross = base_num if base_num else (num * 2 if num else 0)
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
 <div class="body">
   <div class="head" id="l" style="font-size:{max(56, 96 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="cmp">
@@ -209,7 +214,7 @@ def scene_compare(m, it, pg, base_num, dd):
 def scene_step(m, it, pg, no, dd):
     tx = (it.get("caption") or it["detail"])[:70]
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div><div class="pg">{esc(pg)}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div><div class="pg">{esc(pg)}</div></div>
 <div class="body">
   <div class="stepno" id="s">{no}</div>
   <div class="steptx" id="l">{esc(it["label"])}</div>
@@ -231,7 +236,7 @@ def scene_step(m, it, pg, no, dd):
 def scene_fact(m, sc, dd):
     """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
 <div class="body">
   <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
   <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
@@ -256,7 +261,7 @@ def scene_list(m, sc, dd):
     nk = " warn" if sc.get("note_kind") == "warn" else ""
     note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
@@ -283,7 +288,7 @@ def scene_compare2(m, sc, dd):
     nb, ub = parse_amount(b["value"])
     na, ua = parse_amount(a["value"])
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div class="cmp">
@@ -313,13 +318,23 @@ def scene_compare2(m, sc, dd):
     return page(m["category"], inner, js), 2.5, 3.4
 
 
-def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다."):
-    rows = "".join(
-        f'<tr class="r" style="opacity:0"><td>{esc(i["label"])}</td>'
-        f'<td>{esc(i["value"])}</td></tr>' for i in items)
+def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다.", sc=None):
+    cols = (sc or {}).get("columns")
+    if cols:
+        head = "".join(f'<th>{esc(c)}</th>' for c in cols)
+        rows = f'<tr class="r" style="opacity:0">{head}</tr>' + "".join(
+            f'<tr class="r" style="opacity:0"><td>{esc(i["label"].replace("월급 ",""))}</td>'
+            f'<td class="same">{esc(i.get("employed", i["value"]))}</td>'
+            f'<td>{esc(i["value"])}</td></tr>' for i in items)
+    else:
+        rows = "".join(
+            f'<tr class="r" style="opacity:0"><td>{esc(i["label"])}</td>'
+            f'<td>{esc(i["value"])}</td></tr>' for i in items)
+    note = (f'<div class="note" id="tn">{esc(sc["note"])}</div>'
+            if sc and sc.get("note") else "")
     inner = f'''<div class="wrap">
-<div class="top"><div class="badge">{esc(m["category"])}</div><div class="pg">전체</div></div>
-<div class="body"><table class="tbl">{rows}</table></div>
+<div class="top"><div class="badge">{esc(m.get("throughline") or m["category"])}</div></div>
+<div class="body"><table class="tbl">{rows}</table>{note}</div>
 </div>{dd}<div class="cap" id="c">{esc(cap)}</div>
 <div class="brand">@machimaza</div>'''
     js = '''window.draw=(t)=>{
@@ -334,7 +349,12 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
 
 def build_scenes(d):
     m, items = d["meta"], d["items"]
-    dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
+    def dday_for(sc=None):
+        """기한 배지는 장면이 dday:true 로 요청할 때만 뜹니다.
+        모든 장면에 띄우면 세 번째 장면부터는 아무도 읽지 않습니다."""
+        txt = m.get("dday")
+        return f'<div class="dd">{esc(txt)}</div>' if (txt and sc and sc.get("dday")) else ""
+    dd = ""
     struct = m.get("video_structure", "countdown")
 
     # flow — 영상을 items 에서 파생시키지 않고 data.json 의 video.scenes 대로 그립니다.
@@ -344,15 +364,15 @@ def build_scenes(d):
         for sc in d["video"]["scenes"]:
             ty = sc["type"]
             if ty == "hook":
-                S.append(scene_title(m, sc["screen"], dd))
+                S.append(scene_title(m, sc["screen"], dday_for(sc)))
             elif ty == "fact":
-                S.append(scene_fact(m, sc, dd))
+                S.append(scene_fact(m, sc, dday_for(sc)))
             elif ty == "compare":
-                S.append(scene_compare2(m, sc, dd))
+                S.append(scene_compare2(m, sc, dday_for(sc)))
             elif ty == "list":
-                S.append(scene_list(m, sc, dd))
+                S.append(scene_list(m, sc, dday_for(sc)))
             elif ty == "table":
-                S.append(scene_table(m, items, dd, sc["screen"]))
+                S.append(scene_table(m, items, dday_for(sc), sc["screen"], sc))
             else:
                 raise ValueError(f"모르는 장면 유형: {ty}")
         return S

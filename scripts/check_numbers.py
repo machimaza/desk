@@ -159,6 +159,26 @@ def check(base):
         for tok in re.findall(r"[\d,]+", it.get("value", "") + " " + it.get("detail", "")):
             if tok.strip(","):
                 known.add(_num(tok))
+    # items[].wage 가 있으면 금액을 산식으로 직접 검산합니다 (detail 정규식보다 확실).
+    # employed(재직 중 본인부담분)가 임의계속 금액과 같다는 주장도 여기서 확인합니다 —
+    # 화면에 "금액이 바뀌지 않습니다"라고 쓰는 근거이므로 말로 두면 안 됩니다.
+    for it in d["items"]:
+        w = it.get("wage")
+        if not w:
+            continue
+        shown = _num(re.sub(r"[^\d,]", "", it["value"]))
+        want = int(w * R["요율"] * ik.get("경감률", 0.5) // 10 * 10)
+        if abs(want - shown) > 10:
+            E.append(f"'{it['label']}' 임의계속 금액 불일치: 산식 {want:,} ≠ 표기 {shown:,.0f}")
+        if it.get("employed"):
+            emp = _num(re.sub(r"[^\d,]", "", it["employed"]))
+            want_e = int(w * R["직장_본인부담률"] // 10 * 10)
+            if abs(want_e - emp) > 10:
+                E.append(f"'{it['label']}' 재직 중 본인부담 불일치: 산식 {want_e:,} ≠ 표기 {emp:,.0f}")
+            if abs(emp - shown) > 10:
+                E.append(f"'{it['label']}' 재직 중({emp:,.0f})과 임의계속({shown:,.0f})이 다른데 "
+                         f"화면은 '금액이 바뀌지 않는다'고 말하고 있습니다")
+
     # 영상 장면의 금액도 검산합니다. 영상은 블로그보다 오래 남고 고치기 어려우므로
     # 여기서 틀리면 회수 비용이 훨씬 큽니다.
     for i, sc in enumerate(d.get("video", {}).get("scenes", [])):
