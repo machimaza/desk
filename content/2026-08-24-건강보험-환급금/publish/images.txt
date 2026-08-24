@@ -1,0 +1,17 @@
+[블로그] 본문에 나오는 순서입니다. 에디터에서 이 순서대로 올리세요.
+  1. poster.png
+  2. card_03.png
+  3. card_04.png
+  4. card_05.png
+  5. card_06.png
+
+[인스타 캐러셀] flow 순서 그대로 올리세요.
+  1. card_01.png
+  2. card_02.png
+  3. card_03.png
+  4. card_04.png
+  5. card_05.png
+  6. card_06.png
+  7. card_07.png
+
+[포스터] poster.png — 단독 공유용

@@ -150,6 +150,31 @@ def check(base):
                 continue   # 폐지 사실을 설명하는 문장은 정상입니다
             E.append(f"L{i}: {msg} — {ln.strip()[:60]}")
 
+    # ---- 3c. '만원' 단위 금액의 연도 혼동 -------------------------------
+    # 본인부담상한제처럼 '작년 진료분을 올해 환급'하는 제도는 연도를 섞기 쉽습니다.
+    # 본문의 만원 금액이 원장의 **다른 연도** 표에만 있으면 잡습니다.
+    man = {}   # 금액(만원) → {연도}
+    for y, blk in RATES.items():
+        if not y.isdigit():
+            continue
+        for grp in (blk.get("본인부담상한액") or {}).values():
+            if isinstance(grp, dict):
+                for v in grp.values():
+                    if isinstance(v, (int, float)):
+                        man.setdefault(int(v // 10000), set()).add(y)
+    for i, ln in enumerate(lines, 1):
+        if STRUCTURAL.match(ln.strip()):
+            continue
+        for tok in re.findall(r"([\d,]+)\s*만\s*원", ln):
+            v = int(tok.replace(",", ""))
+            ys = man.get(v)
+            if not ys or cur in ys:
+                continue
+            if any(y in ln for y in ys):
+                continue   # 연도를 밝히고 쓴 것은 정상입니다
+            E.append(f"L{i}: {v:,}만원 은 {'·'.join(sorted(ys))}년 표의 값인데 "
+                     f"연도 표기 없이 쓰였습니다 — {ln.strip()[:50]}")
+
     # ---- 4. 유령 금액 ----------------------------------------------------
     known = set()
     for k, v in R.items():

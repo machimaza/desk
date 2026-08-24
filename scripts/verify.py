@@ -85,9 +85,12 @@ def main(base):
                     E.append(f"flow.scenes[{i}]({x.get('type')}) 의 {k} 가 비어 있습니다")
         if not E:
             ok(f"flow {len(fl)}장면 — {' → '.join(kinds)}")
-    for it in d["items"]:
-        if not it.get("wage"):
-            W.append(f"'{it['label']}' 에 wage 없음 — 금액을 산식으로 검산할 수 없습니다")
+    # wage 는 '월급에서 계산하는' 글에만 해당합니다. 법이 정한 상한액처럼
+    # 산식이 없는 금액도 있으므로, 일부만 빠진 경우에만 경고합니다.
+    wages = [bool(it.get("wage")) for it in d["items"]]
+    if any(wages) and not all(wages):
+        miss = [it["label"] for it in d["items"] if not it.get("wage")]
+        W.append(f"wage 가 일부 항목에만 있음 {miss} — 검산 기준이 섞입니다")
 
     # --- 2. 출처 등급 / 최신성 ---
     today = dt.date.today()
@@ -155,7 +158,11 @@ def main(base):
             E.append("블로그 본문에 마크다운 텍스트 표가 없음 (이미지로만 대체됨)")
         else: ok("본문 텍스트 표 확인")
         # --- 5. 항목별 해설 분량 ---
-        if len(txt) < 1200: W.append(f"본문 {len(txt)}자 — 항목별 해설이 부족할 수 있음")
+        # CLAUDE.md 3장 규격 — 상위 글 12개 실측 기반
+        if len(txt) < 6000:
+            E.append(f"본문 {len(txt):,}자 — 6,000자 미만은 깊이가 부족합니다 (목표 8,000자)")
+        elif len(txt) < 8000:
+            W.append(f"본문 {len(txt):,}자 — 목표는 8,000자입니다")
         # --- 6. 톤 린트 ---
         te, tw = lint_tone.check(blog)
         E += te; W += tw
