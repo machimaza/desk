@@ -37,9 +37,6 @@ CSS = """
   --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
-.cat-건강보험{--cat:var(--cat-health)}
-.cat-재테크{--cat:var(--cat-money)}
-.cat-생활꿀팁{--cat:var(--cat-life)}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
   width:1080px;height:1920px;overflow:hidden}
 .wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;
@@ -121,6 +118,14 @@ function setBar(el,ratio,p){
 """
 
 
+CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
+                   "categories.json").read_text(encoding="utf-8"))["카테고리"]
+
+
+def cat_color(name):
+    return (CATS.get(name) or {}).get("색", "#2E6B5E")
+
+
 def top_bar(m):
     """좌측 = 분야, 우측 = 관통 단어.
 
@@ -150,7 +155,7 @@ def parse_amount(v):
 
 def page(cat, inner, script):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-            f'<style>{CSS}</style></head><body class="cat-{esc(cat)}">{inner}'
+            f'<style>{CSS}</style></head><body style="--cat:{cat_color(cat)}">{inner}'
             f'<script>{JS}\n{script}</script></body></html>')
 
 

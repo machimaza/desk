@@ -12,12 +12,21 @@ T = """:root{--ink:#16202E;--ink-soft:#4A5666;--paper:#FBF8F3;--paper-2:#F2ECE1;
 --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
 body{font-family:var(--font);background:var(--paper);color:var(--ink)}
-.cat-건강보험{--cat:var(--cat-health)}.cat-재테크{--cat:var(--cat-money)}.cat-생활꿀팁{--cat:var(--cat-life)}"""
+"""
 
 AXES = {"소득구간","연령대","가구형태","지역","직업형태","생활패턴"}
 BANNED = {"자산순위","자산 순위","질병위험도","질병 위험도","외모","체형"}
 DISC = {"health":"증상이 지속되거나 우려된다면 의료진과 상담","money":"투자 권유가 아닙니다"}
-CAT2KEY = {"건강보험":"health","재테크":"money","생활꿀팁":"none"}
+CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
+                   "categories.json").read_text(encoding="utf-8"))["카테고리"]
+
+def cat_color(name):
+    """카테고리 색은 categories.json 에서 옵니다.
+
+    예전에는 CSS 에 .cat-이름 클래스를 하나씩 박아 뒀습니다.
+    카테고리를 추가할 때마다 CSS 세 곳을 고쳐야 했고, 빠뜨리면 색이 없는 채로 렌더됐습니다.
+    """
+    return (CATS.get(name) or {}).get("색", "#2E6B5E")
 _D = r"(암|당뇨|고혈압|혈압|혈당|아토피|치매|관절염|골다공증|비염|위염|간염|통풍|불면증|우울증|탈모|디스크|염증|콜레스테롤)"
 _E = r"(치료|완치|낫는|낫습|효능|예방|개선|회복|잡아|없애|제거|낮춰|줄여)"
 FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시 알아야|절대 놓치",
@@ -37,7 +46,7 @@ def az(t,b,p,f): return max(f,int(b-len(t)*p))
 
 def page(body_css, cls, inner, w, h):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{T}\n{body_css}'
-            f'</style></head><body class="cat-{cls}">{inner}</body></html>')
+            f'</style></head><body style="--cat:{cat_color(cls)}">{inner}</body></html>')
 
 CARD_CSS = """.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
 .wrap{width:1080px;height:1350px;padding:90px 80px;display:flex;flex-direction:column}

@@ -5,16 +5,10 @@
 import sys, json, re, pathlib, subprocess, datetime as dt
 import lint_tone, check_numbers, lint_terms
 
-# CLAUDE.md v3 §8 "고정 문구"와 1:1 대응. 여기를 고칠 때는 CLAUDE.md도 같이 고칠 것.
-DISC = {
- # 건강보험료 니치는 의료 콘텐츠가 아니라 제도 콘텐츠다.
- # 증상 상담 문구가 아니라 기관 확인 문구를 요구한다.
- "health": "국민건강보험공단(1577-1000)에 확인",
- "money":  "투자 권유가 아닙니다",
-}
-# 니치를 건강보험료 하나로 좁힌 뒤, 3개 카테고리 체계는 잔재만 남았습니다.
-# "건강"은 의료 콘텐츠로 오해되므로 씁니다: 제도 콘텐츠임을 배지가 드러내야 합니다.
-CAT2KEY = {"건강보험":"health", "재테크":"money", "생활꿀팁":"none"}
+# 카테고리·고지문구는 categories.json 이 유일한 출처입니다.
+CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
+                   "categories.json").read_text(encoding="utf-8"))["카테고리"]
+
 AXES = {"소득구간","연령대","가구형태","지역","직업형태","생활패턴"}
 BANNED_AXIS = {
  "자산순위":"상대적 박탈감 — 톤 규칙 위반",
@@ -120,13 +114,25 @@ def main(base):
     ok("출처 등급·링크·최신성 검사 완료")
 
     # --- 3. 카테고리 고지 문구 ---
-    key = CAT2KEY[d["meta"]["category"]]
+    # 목록에 없는 값이면 예전에는 KeyError 로 죽었습니다. 게이트는 죽지 말고 판정해야 합니다.
+    cat = d["meta"]["category"]
+    spec = CATS.get(cat)
+    if spec is None:
+        E.append(f"카테고리 '{cat}' 는 categories.json 에 없습니다. "
+                 f"활성: {', '.join(k for k,v in CATS.items() if v['상태']=='활성')}")
+        spec = {}
+    elif spec["상태"] == "예정":
+        E.append(f"카테고리 '{cat}' 는 아직 열지 않았습니다 — {spec.get('조건','')}")
+    elif spec["상태"] == "폐기":
+        E.append(f"카테고리 '{cat}' 는 폐기됐습니다 — {spec.get('메모','')} 되살리지 않습니다")
+    disc = spec.get("고지문구", "")
     blog = base/"blog.md"
     if blog.exists():
         txt = blog.read_text(encoding="utf-8")
-        if key != "none" and DISC[key] not in txt:
-            E.append(f"'{d['meta']['category']}' 카테고리 고지 문구 누락")
-        else: ok("카테고리 고지 문구 확인")
+        if disc and disc not in txt:
+            E.append(f"'{cat}' 고지 문구 누락 — 본문에 \"{disc}\" 가 있어야 합니다")
+        elif disc:
+            ok("카테고리 고지 문구 확인")
         # --- 4. 텍스트 표 존재 (검색엔진은 이미지 속 글자를 못 읽음) ---
         if not re.search(r"^\|.+\|\s*$", txt, re.M):
             E.append("블로그 본문에 마크다운 텍스트 표가 없음 (이미지로만 대체됨)")
@@ -192,7 +198,7 @@ def main(base):
     # --- 사람 판단 항목 ---
     M.append("이미지 저작권 — 생성/공공누리 자료만 사용했는가")
     M.append("과장·불안 조성 뉘앙스 — 린터가 못 잡는 맥락상 문제는 없는가")
-    if d["meta"]["category"] in ("건강보험","재테크"):
+    if disc:
         M.append("YMYL — 진단/처방/수익 단정으로 읽힐 문장은 없는가")
 
     print("\n" + "─"*54)
