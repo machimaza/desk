@@ -133,6 +133,23 @@ def main(base):
             E.append(f"'{cat}' 고지 문구 누락 — 본문에 \"{disc}\" 가 있어야 합니다")
         elif disc:
             ok("카테고리 고지 문구 확인")
+        # --- 3b. 제목 — 슬로건이 정한 규칙 -----------------------------
+        # "마침 필요한 정보를, 알맞게" 의 주어는 독자입니다.
+        # 제목이 우리 말(총정리·판단법)로 시작하면 슬로건과 어긋납니다.
+        h1 = txt.split("\n", 1)[0].lstrip("# ").strip()
+        SUPPLIER = ["총정리", "완벽 정리", "완벽정리", "판단법", "알아보기", "파헤",
+                    "모든 것", "정리해봤", "낱낱이", "완전정복"]
+        hit = [w for w in SUPPLIER if w in h1]
+        if hit:
+            E.append(f"제목에 공급자 언어 {hit} — 독자는 그렇게 검색하지 않습니다. "
+                     f"독자의 질문 형태로 바꾸세요 (얼마 / 언제까지 / 나도 되나)")
+        READER = ["얼마", "언제", "어떻게", "되나", "나요", "될까", "받나",
+                  "기한", "신청", "조건", "누가", "왜"]
+        if not any(w in h1 for w in READER):
+            W.append("제목에 독자의 질문 신호가 없음 — 검색어와 멀어질 수 있습니다")
+        else:
+            ok(f"제목 규칙 통과 — 「{h1[:40]}」")
+
         # --- 4. 텍스트 표 존재 (검색엔진은 이미지 속 글자를 못 읽음) ---
         if not re.search(r"^\|.+\|\s*$", txt, re.M):
             E.append("블로그 본문에 마크다운 텍스트 표가 없음 (이미지로만 대체됨)")
@@ -186,8 +203,12 @@ def main(base):
         W.append("video.mp4 없음 (영상 트랙 미생성)")
 
     # --- 조판 규칙 (CLAUDE.md 5장) ---
-    if not d["meta"].get("dday"):
-        W.append("meta.dday 없음 — D-day 배지가 빠집니다 (브랜드 시그니처)")
+    # D-day 배지는 상시 노출을 폐기했습니다 (9장 — 세 번째 장면부터 아무도 안 읽음).
+    # 이제 장면이 dday:true 로 요청할 때만 뜹니다. 그래서 없는 것이 정상이고,
+    # 요청해 놓고 문구가 없는 경우만 잡습니다.
+    wants = [i for i, x in enumerate(d.get("flow", {}).get("scenes", [])) if x.get("dday")]
+    if wants and not d["meta"].get("dday"):
+        E.append(f"flow.scenes{wants} 가 dday 배지를 요청했는데 meta.dday 가 없습니다")
     nocap = [i["label"] for i in d["items"] if not i.get("caption")]
     if nocap:
         W.append(f"caption 없는 항목 {len(nocap)}개 — 영상 자막이 화면 텍스트와 중복됩니다")
