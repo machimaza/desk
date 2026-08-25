@@ -13,6 +13,7 @@ narrate.yml 은 이 파일을 한 줄로 부르기만 합니다 — 반복문을
 
   python scripts/voice_samples.py --mode korean --engine azure
   python scripts/voice_samples.py --mode variants --voice ko-KR-SeoHyeonNeural
+  python scripts/voice_samples.py --mode variants --voice ko-KR-SeoHyeonNeural --grid child
 """
 import argparse
 import pathlib
@@ -44,6 +45,23 @@ VARIANTS = [("-8%",  "+0Hz",  "조금 느리게"),
             ("-8%",  "-15Hz", "차분하게 (느리고 낮게)"),
             ("+8%",  "-10Hz", "또렷하게 (빠르고 낮게)"),
             ("+15%", "+10Hz", "활기차게 (빠르고 높게)")]
+
+# 아이 톤 격자 — 여성 음성의 높낮이를 크게 올리면 어린아이처럼 들립니다.
+# 성별 구분이 흐려져서 남자아이로도 들립니다. 다만 공짜로 되는 건 아닙니다:
+#   +40Hz 를 넘어가면 합성 티가 나기 시작하고(쇳소리),
+#   숫자와 제도 용어의 또렷함이 떨어집니다.
+# 그래서 사다리처럼 올려놓고 어디까지 견딜 만한지 직접 듣고 고르시게 했습니다.
+CHILD = [("+0%",  "+20Hz", "조금 어리게"),
+         ("+0%",  "+30Hz", "어리게"),
+         ("+0%",  "+40Hz", "더 어리게"),
+         ("+0%",  "+50Hz", "많이 어리게"),
+         ("+0%",  "+60Hz", "가장 어리게 (합성 티가 날 수 있음)"),
+         ("+8%",  "+30Hz", "재잘재잘 (조금 빠르게)"),
+         ("+10%", "+40Hz", "신난 아이"),
+         ("+12%", "+50Hz", "아주 신난 아이"),
+         ("-5%",  "+40Hz", "또박또박 (천천히)")]
+
+GRIDS = {"info": VARIANTS, "child": CHILD}
 
 MULTI_CAP = 12  # 합본이 너무 길어지지 않게. 잘린 개수는 아래에서 알립니다.
 
@@ -79,7 +97,7 @@ def concat(parts, out):
     lst.unlink()
 
 
-def build(out, want, pick=None):
+def build(out, want, pick=None, grid="info"):
     out.mkdir(parents=True, exist_ok=True)
     tmp = out / "_tmp"
     tmp.mkdir(exist_ok=True)
@@ -102,7 +120,7 @@ def build(out, want, pick=None):
         if pick not in avail:
             print(f"[경고] {pick} 을(를) 이 엔진에서 찾지 못했습니다")
         variants.append((pick, "+0%", "+0Hz", "원본"))
-        for rate, pitch, label in VARIANTS:
+        for rate, pitch, label in GRIDS[grid]:
             variants.append((pick, rate, pitch, label))
 
     found = sorted(n for n in avail
@@ -161,12 +179,14 @@ def main(argv):
     ap.add_argument("--mode", default="all",
                     choices=["all", "korean", "multilingual", "variants"])
     ap.add_argument("--voice", default="", help="variants 일 때 맞출 목소리")
+    ap.add_argument("--grid", default="info", choices=["info", "child"],
+                    help="info 는 정보 전달용, child 는 아이 톤")
     ap.add_argument("--out", default="samples")
     ap.add_argument("--engine", default="edge", choices=["edge", "azure"])
     a = ap.parse_args(argv[1:])
     global ENGINE
     ENGINE = a.engine
-    build(pathlib.Path(a.out), a.mode, a.voice or None)
+    build(pathlib.Path(a.out), a.mode, a.voice or None, a.grid)
     return 0
 
 
