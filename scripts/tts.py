@@ -26,8 +26,14 @@ FORMAT = "audio-24khz-48kbitrate-mono-mp3"
 
 
 def _azure_conf():
+    # 러너는 없는 시크릿도 "빈 문자열"로 넘겨줍니다. 키가 아예 없는 것과
+    # 빈 값인 것이 파이썬에서는 다르게 동작합니다 —
+    #   os.environ.get("X", "기본값")  →  X 가 빈 문자열이면 기본값이 안 나옵니다
+    # 그래서 지역이 ""가 된 채로 주소를 만들었고,
+    # "https://.tts.speech.microsoft.com" 이 되어 idna 오류로 죽었습니다.
+    # get 의 기본값이 아니라 or 로 받아야 합니다.
     key = os.environ.get("AZURE_SPEECH_KEY", "").strip()
-    region = os.environ.get("AZURE_SPEECH_REGION", "koreacentral").strip()
+    region = os.environ.get("AZURE_SPEECH_REGION", "").strip() or "koreacentral"
     if not key:
         raise SystemExit(
             "AZURE_SPEECH_KEY 가 비어 있습니다.\n"
