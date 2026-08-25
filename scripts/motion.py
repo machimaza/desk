@@ -113,15 +113,18 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
 .cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
   line-height:1.35;word-break:keep-all;text-align:center}
-/* 채널명은 맨 꼭대기 한가운데 — 제호 자리입니다.
-   바닥에 있을 때는 본문이 길어지면 그 위로 글이 내려앉아 겹쳤고,
-   분야칩과 관통 단어 사이에 끼웠더니 둘 사이에 묻혔습니다.
+/* 채널명은 왼쪽 위 모서리 — 워터마크 자리입니다.
+   바닥에 두면 본문이 길어질 때 그 위로 글이 내려앉아 겹쳤고,
+   분야칩과 관통 단어 사이에 끼우면 둘 사이에 묻혔고,
+   가운데 위에 두면 제목과 한 덩어리로 읽혔습니다. 네 번째 자리입니다.
 
-   y=100 은 유튜브 상단 안전영역(288) 안입니다. 그래도 되는 이유는
-   유튜브 상단 UI 가 **양 끝에만** 있기 때문입니다 —
-   왼쪽에 뒤로가기, 오른쪽에 검색·더보기, 가운데는 늘 비어 있습니다.
-   그래서 가운데 한 줄만 쓰고, 좌우로는 넓히지 않습니다. */
-.brand{position:absolute;top:100px;left:50%;transform:translateX(-50%);
+   x=48 은 유튜브가 밝힌 왼쪽 안전영역 그대로입니다 — 왼쪽은 원래 48px 만 비우면 됩니다.
+   y=48 은 상단 권장(288)을 크게 벗어납니다. 그래도 두는 이유:
+   요즘 폰은 9:19.5 라 9:16 영상이 위아래로 레터박스되고,
+   유튜브 상단 아이콘(뒤로가기·검색·더보기)은 그 검은 띠에 얹힙니다.
+   9:16 에 가까운 화면에서는 뒤로가기 버튼에 가릴 수 있습니다 —
+   가려도 잃는 것이 워터마크 하나뿐이라 감수합니다. */
+.brand{position:absolute;top:48px;left:48px;
   font-size:30px;font-weight:800;color:var(--ink-soft);
   letter-spacing:.08em;white-space:nowrap}
 .basis{position:absolute;left:190px;right:190px;bottom:672px;font-size:28px;
@@ -541,16 +544,15 @@ FIT_JS = """() => {
     bad.push(`본문이 진행바를 ${(prog.bottom + 8 - top).toFixed(0)}px 침범`);
   }
 
-  // 채널명은 맨 꼭대기 한 줄. 아래 줄과 부딪히거나 화면 밖으로 나가면 안 됩니다.
+  // 채널명은 왼쪽 위 모서리 워터마크. 화면 밖으로 나가거나 아래 줄에 붙으면 안 됩니다.
   const br = R(document.querySelector('.brand'));
   if (br) {
-    if (br.top < 60) bad.push(`채널명이 위로 ${(60 - br.top).toFixed(0)}px 넘침`);
+    if (br.top < 36 || br.left < 36) bad.push('채널명이 모서리 밖으로 나감');
+    if (br.right > 890) bad.push('채널명이 오른쪽 안전영역(890)을 넘음');
     const topbar = R(document.querySelector('.top'));
     if (topbar && br.bottom > topbar.top - 12) {
       bad.push(`채널명이 분야칩 줄을 ${(br.bottom - topbar.top + 12).toFixed(0)}px 침범`);
     }
-    // 좌우 UI 가 덮는 자리까지 넓어지지 않았는지 (유튜브 상단은 양 끝만 씁니다)
-    if (br.left < 300 || br.right > 780) bad.push('채널명이 너무 넓음 — 좌우 UI 에 걸립니다');
   }
 
   // 자막이 출처줄을 밀고 올라오는지
