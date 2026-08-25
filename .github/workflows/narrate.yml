@@ -24,10 +24,10 @@ on:
         description: '목소리 높낮이'
         default: '+0Hz'
       samples:
-        description: '샘플 범위 (samples 일 때)'
+        description: '샘플 범위 — korean 으로 목소리 고르고, variants 로 다듬습니다'
         type: choice
-        options: [all, korean, multilingual]
-        default: all
+        options: [korean, variants, multilingual, all]
+        default: korean
       engine:
         description: '음성 엔진 — azure 는 키가 있어야 합니다'
         type: choice
@@ -80,7 +80,8 @@ jobs:
         if: inputs.mode == 'samples'
         run: |
           set -euo pipefail
-          python scripts/voice_samples.py --mode "$SAMPLES" --engine "$ENGINE"
+          python scripts/voice_samples.py --mode "$SAMPLES" --engine "$ENGINE" \
+            --voice "$VOICE"
           ls -la samples/
           cat samples/목록.txt
 
