@@ -13,6 +13,20 @@
   --cat-money:#1F5C8B;
   --cat-life:#C2703D;
   --warn:#A03A28;        /* 주의 문구 — 놓치면 손해 보는 조건 */
+
+  /* 카테고리 안의 강조색 변주 — 글마다 돌립니다.
+     같은 카테고리 글이 열 편 쌓이면 열 편이 다 같은 초록이 됩니다.
+     계열을 벗어나지 않으므로 브랜드는 유지되고, 나란히 놓으면 다른 글로 보입니다.
+     실제 배정은 categories.json 의 "강조색" 이 하고, meta.accent 가 몇 번째인지 고릅니다. */
+  --health-1:#3B6B4A;    /* 초록 쪽으로 */
+  --health-2:#256A6B;    /* 청록 쪽으로 */
+  --money-1:#35547F;     /* 남색 쪽으로 */
+  --money-2:#14607E;     /* 청록 쪽으로 */
+  --grant-0:#8A5A2B;     /* 지원금·환급 기본 */
+  --grant-1:#8A4A32;     /* 벽돌 쪽으로 */
+  --grant-2:#7C6127;     /* 황토 쪽으로 */
+  --pension:#4A5D7E;     /* 국민연금 (예정) */
+  --employ:#6B5B95;      /* 고용보험 (예정) */
   --font: "Noto Sans CJK KR","Noto Sans KR",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}

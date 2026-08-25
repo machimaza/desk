@@ -166,8 +166,25 @@ CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
                    "categories.json").read_text(encoding="utf-8"))["카테고리"]
 
 
-def cat_color(name):
-    return (CATS.get(name) or {}).get("색", "#2E6B5E")
+def cat_color(name, accent=0):
+    """카테고리 색. accent 는 그 계열 안의 몇 번째 변주인가입니다.
+
+    같은 카테고리 글이 쌓이면 전부 같은 색이 됩니다 — 건강보험만 65편 계획이라
+    그대로 두면 65편이 한 덩어리로 보입니다. 계열 안에서 돌리면
+    브랜드는 유지되면서 나란히 놓았을 때 다른 글로 보입니다.
+
+    accent 는 data.json 의 meta.accent 에서 옵니다. 없으면 0 입니다.
+    직전 2편과 같으면 lint_sameness 가 경고합니다.
+    """
+    c = CATS.get(name) or {}
+    pal = c.get("강조색")
+    if pal:
+        return pal[int(accent) % len(pal)]
+    return c.get("색", "#2E6B5E")
+
+
+# 지금 글의 강조색 번호. render() 가 data.json 에서 읽어 세웁니다.
+ACCENT = 0
 
 
 def bottom_bar(m, d=None):
@@ -236,7 +253,7 @@ def parse_amount(v):
 
 def page(cat, inner, script):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-            f'<style>{CSS}</style></head><body style="--cat:{cat_color(cat)}">{inner}'
+            f'<style>{CSS}</style></head><body style="--cat:{cat_color(cat, ACCENT)}">{inner}'
             f'<script>{JS}\n{script}</script></body></html>')
 
 
@@ -585,6 +602,8 @@ FIT_JS = """() => {
 
 
 def render(d, base, keep_frames=False):
+    global ACCENT
+    ACCENT = d["meta"].get("accent", 0)
     base = pathlib.Path(base)
     scenes = build_scenes(d)
     BOT = bottom_bar(d["meta"], d)
@@ -711,7 +730,8 @@ def main(argv):
     d = json.loads((base / "data.json").read_text(encoding="utf-8"))
     out, dur, has_narr = render(d, base)
     print(f"[video] {out.name} · {dur:.1f}초 · 구조 {d['meta'].get('video_structure','countdown')} "
-          f"· 음성 {'있음' if has_narr else '없음(무음)'} · 워터마크 {HANDLE}")
+          f"· 음성 {'있음' if has_narr else '없음(무음)'} · 워터마크 {HANDLE} "
+          f"· 강조색 {cat_color(d['meta']['category'], ACCENT)}(accent {ACCENT})")
     return 0
 
 

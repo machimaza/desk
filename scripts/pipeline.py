@@ -22,13 +22,25 @@ DISC = {"health":"증상이 지속되거나 우려된다면 의료진과 상담"
 CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
                    "categories.json").read_text(encoding="utf-8"))["카테고리"]
 
-def cat_color(name):
-    """카테고리 색은 categories.json 에서 옵니다.
+def cat_color(name, accent=0):
+    """카테고리 색. accent 는 그 계열 안의 몇 번째 변주인가입니다.
 
-    예전에는 CSS 에 .cat-이름 클래스를 하나씩 박아 뒀습니다.
-    카테고리를 추가할 때마다 CSS 세 곳을 고쳐야 했고, 빠뜨리면 색이 없는 채로 렌더됐습니다.
+    같은 카테고리 글이 쌓이면 전부 같은 색이 됩니다 — 건강보험만 65편 계획이라
+    그대로 두면 65편이 한 덩어리로 보입니다. 계열 안에서 돌리면
+    브랜드는 유지되면서 나란히 놓았을 때 다른 글로 보입니다.
+
+    accent 는 data.json 의 meta.accent 에서 옵니다. 없으면 0 입니다.
+    직전 2편과 같으면 lint_sameness 가 경고합니다.
     """
-    return (CATS.get(name) or {}).get("색", "#2E6B5E")
+    c = CATS.get(name) or {}
+    pal = c.get("강조색")
+    if pal:
+        return pal[int(accent) % len(pal)]
+    return c.get("색", "#2E6B5E")
+
+
+# 지금 글의 강조색 번호. build_images() 가 data.json 에서 읽어 세웁니다.
+ACCENT = 0
 _D = r"(암|당뇨|고혈압|혈압|혈당|아토피|치매|관절염|골다공증|비염|위염|간염|통풍|불면증|우울증|탈모|디스크|염증|콜레스테롤)"
 _E = r"(치료|완치|낫는|낫습|효능|예방|개선|회복|잡아|없애|제거|낮춰|줄여)"
 FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시 알아야|절대 놓치",
@@ -62,7 +74,7 @@ def handle(key=None):
 
 def page(body_css, cls, inner, w, h):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{T}\n{body_css}'
-            f'</style></head><body style="--cat:{cat_color(cls)}">{inner}</body></html>')
+            f'</style></head><body style="--cat:{cat_color(cls, ACCENT)}">{inner}</body></html>')
 
 CARD_CSS = """.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
 /* 채널 워터마크 — 왼쪽 위 모서리. 영상(motion.py)과 같은 자리입니다.
@@ -174,6 +186,8 @@ def shoot(pages, outdir, w, h):
     return out
 
 def build_images(d, base):
+    global ACCENT
+    ACCENT = d["meta"].get("accent", 0)
     m, items = d["meta"], d["items"]; n = len(items); total = n+2
     dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
     # meta.layout 이 포스터 구성을 정합니다.

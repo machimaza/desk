@@ -84,6 +84,20 @@ def main():
     known |= {norm(h) for h in ALLOWED}
 
     bad = []
+
+    # categories.json 의 색도 tokens.css 안에 있어야 합니다.
+    # 카테고리를 늘리다 보면 여기에만 색을 추가하고 tokens.css 를 잊습니다 —
+    # 그러면 "색의 기준값"이라는 말이 다시 거짓말이 됩니다.
+    cats = ROOT / "categories.json"
+    if cats.exists():
+        cd = json.loads(cats.read_text(encoding="utf-8"))
+        for cname, c in (cd.get("카테고리") or {}).items():
+            if not isinstance(c, dict):
+                continue
+            for h in ([c.get("색")] if c.get("색") else []) + (c.get("강조색") or []):
+                if norm(h) not in known:
+                    bad.append(("categories.json", 0, h, f"카테고리 {cname}"))
+
     for name in RENDERERS:
         f = ROOT / "scripts" / name
         if not f.exists():

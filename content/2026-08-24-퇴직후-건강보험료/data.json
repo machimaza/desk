@@ -6,6 +6,7 @@
     "category": "건강보험",
     "format": "hybrid",
     "layout": "list",
+    "accent": 1,
     "video_structure": "flow",
     "publish_date": "2026-08-24",
     "axis": {

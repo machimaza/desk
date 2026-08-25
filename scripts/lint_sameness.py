@@ -18,7 +18,8 @@
   1. layout 이 직전 글과 같은가
   2. flow 장면 순서가 기존 글과 완전히 같은가
   3. 여는 장치 / 닫는 장치가 3편 연속 같은가
-  4. 문장 재사용 (8글자 연속) 비율 — 목표 4% 미만.
+  4. 강조색이 같은 카테고리에서 3편 연속 같은가
+  5. 문장 재사용 (8글자 연속) 비율 — 목표 4% 미만.
      3%로 잡았더니 필수 문구만으로 초과했습니다. 신뢰 문구를 빼는 건 손해입니다.
 
 사용:  python3 scripts/lint_sameness.py <콘텐츠폴더>
@@ -66,6 +67,13 @@ def ngrams(t, n=8):
     return {t[i:i+n] for i in range(len(t) - n)}
 
 
+def CATS_PAL(cat):
+    """그 카테고리에 준비된 강조색 목록. 없으면 기본 하나뿐입니다."""
+    d = json.loads((ROOT / "categories.json").read_text(encoding="utf-8"))
+    c = (d.get("카테고리") or {}).get(cat) or {}
+    return c.get("강조색") or [c.get("색", "#2E6B5E")]
+
+
 def check(base):
     base = pathlib.Path(base).resolve()
     d = json.loads((base / "data.json").read_text(encoding="utf-8"))
@@ -88,6 +96,19 @@ def check(base):
         if base_n and len(ov) / base_n > 0.04:
             W.append(f"'{p.name}' 와 문장 재사용 {len(ov)/base_n*100:.1f}% "
                      f"(목표 4% 미만 — 출처·고지·서명은 계산에서 제외됨)")
+
+    # 강조색 — 같은 카테고리 글이 쌓이면 전부 같은 색이 됩니다.
+    # 건강보험만 65편 계획이라, 그냥 두면 65편이 한 덩어리로 보입니다.
+    # 카테고리 안에서 도는 것이라 계열은 벗어나지 않습니다(브랜드 유지).
+    cat = d["meta"].get("category")
+    acc = d["meta"].get("accent", 0)
+    same_cat = [od for _, od, _ in others if od["meta"].get("category") == cat]
+    if same_cat:
+        prev = [o["meta"].get("accent", 0) for o in same_cat][-2:]
+        if prev and all(x == acc for x in prev):
+            n = len(prev) + 1
+            W.append(f"강조색 accent={acc} 가 같은 카테고리('{cat}')에서 {n}편 연속입니다 — "
+                     f"categories.json 의 강조색 {len(CATS_PAL(cat))}개 중 다른 번호를 쓰세요")
 
     lays = [od["meta"].get("layout") for _, od, _ in others] + [lay]
     if len(lays) >= 3 and len(set(lays[-3:])) == 1:
