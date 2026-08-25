@@ -134,7 +134,7 @@ overflow:hidden;text-overflow:ellipsis}
 .cta{background:var(--ink);color:var(--paper);font-size:26px;font-weight:800;
 padding:18px 28px;border-radius:14px;text-align:center;word-break:keep-all}"""
 
-SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 190px 430px 100px;display:flex;flex-direction:column}
+SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 150px 430px 150px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
 .badge{border:3px solid var(--cat);color:var(--cat);background:transparent;font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
 .through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;white-space:nowrap}
