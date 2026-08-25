@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>개인정보처리방침 — 마치마자</title>
+<style>
+  :root{--bg:#fff;--fg:#111;--muted:#666;--line:#e5e5e5;--accent:#0b6b3a}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#111;--fg:#eee;--muted:#999;--line:#2a2a2a;--accent:#4ade80}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",
+    "Malgun Gothic","Noto Sans KR",sans-serif}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+  h1{font-size:1.7rem;margin:0 0 .5rem;letter-spacing:-.02em}
+  .date{color:var(--muted);margin:0 0 2.5rem;font-size:.9rem}
+  h2{font-size:1.1rem;margin:2.25rem 0 .6rem;padding-top:1.25rem;
+    border-top:1px solid var(--line)}
+  ul{padding-left:1.2rem}
+  li{margin:.35rem 0}
+  a{color:var(--accent)}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:.5rem .7rem;text-align:left}
+  th{background:rgba(128,128,128,.08)}
+  footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--line);
+    color:var(--muted);font-size:.9rem}
+</style>
+<main>
+  <h1>개인정보처리방침</h1>
+  <p class="date">시행일 2026년 8월 25일</p>
+
+  <p>마치마자(이하 “운영자”)는 이용자의 개인정보를 소중히 다룹니다.
+  이 방침은 운영자가 어떤 정보를 다루고 다루지 않는지 밝힙니다.</p>
+
+  <h2>1. 이 사이트가 수집하지 않는 것</h2>
+  <p>이 웹사이트는 <strong>정적 페이지</strong>로만 이루어져 있습니다.
+  회원가입, 로그인, 댓글, 문의 양식이 없습니다.
+  따라서 운영자는 이 사이트를 통해 이용자의 개인정보를
+  <strong>수집하지 않습니다.</strong></p>
+  <p>다만 이 사이트는 GitHub Pages 에서 제공되며, 그 과정에서 GitHub 이
+  접속 기록(IP 주소 등)을 자체 정책에 따라 처리할 수 있습니다.
+  자세한 내용은 GitHub 의 개인정보처리방침을 따릅니다.</p>
+
+  <h2>2. 업로드 도구가 다루는 정보</h2>
+  <p>운영자는 자신이 만든 영상과 글을 자신의 채널에 올리기 위해
+  자체 제작한 도구를 사용합니다. 이 도구는 <strong>운영자 본인의 계정에만</strong>
+  접근하며, 제3자에게 제공되지 않습니다.</p>
+
+  <table>
+    <tr><th>서비스</th><th>사용하는 권한</th><th>무엇에 쓰나</th></tr>
+    <tr>
+      <td>YouTube Data API</td>
+      <td><code>youtube.upload</code></td>
+      <td>운영자 본인 채널에 영상을 업로드</td>
+    </tr>
+    <tr>
+      <td>Threads API</td>
+      <td><code>threads_basic</code><br><code>threads_content_publish</code></td>
+      <td>운영자 본인 계정에 게시물 발행</td>
+    </tr>
+  </table>
+
+  <p>이 도구는 다음을 하지 <strong>않습니다</strong>.</p>
+  <ul>
+    <li>다른 이용자의 계정에 접근하거나 대신 게시하지 않습니다</li>
+    <li>시청자·구독자·팔로워의 개인정보를 조회하거나 저장하지 않습니다</li>
+    <li>취득한 정보를 제3자에게 판매하거나 제공하지 않습니다</li>
+    <li>취득한 정보를 광고나 인공지능 모델 학습에 사용하지 않습니다</li>
+  </ul>
+
+  <p>접근에 사용하는 인증 정보(토큰)는 운영자의 코드 저장소 비공개 설정
+  (GitHub Actions Secrets)에 보관되며 공개되지 않습니다.
+  YouTube API 를 통해 얻은 데이터의 사용은
+  <a href="https://www.youtube.com/t/terms">YouTube 서비스 약관</a> 및
+  <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 따릅니다.</p>
+
+  <h2>3. 권한 철회</h2>
+  <p>운영자는 <a href="https://myaccount.google.com/permissions">Google 계정 권한 설정</a>에서
+  이 도구의 접근 권한을 언제든지 철회할 수 있습니다.
+  철회하면 도구는 더 이상 채널에 접근하지 못합니다.</p>
+
+  <h2>4. 콘텐츠에 관하여</h2>
+  <p>이 사이트와 각 채널에 실린 정보는 <strong>참고용</strong>입니다.
+  제도와 금액은 바뀔 수 있으므로, 정확한 내용은 각 소관 기관에서 확인하셔야 합니다.
+  운영자는 의료·법률·금융 자문을 제공하지 않습니다.</p>
+
+  <h2>5. 방침의 변경</h2>
+  <p>이 방침이 바뀌면 이 페이지에 변경 내용과 시행일을 게시합니다.</p>
+
+  <h2>6. 문의</h2>
+  <p>개인정보 관련 문의는 <a href="mailto:chw6236@gmail.com">chw6236@gmail.com</a>
+  으로 보내주세요.</p>
+
+  <footer>
+    <p><a href="index.html">← 마치마자</a></p>
+  </footer>
+</main>
+</html>
