@@ -46,6 +46,25 @@ def list_voices(engine="edge"):
     return [n for n, _, _ in ko]
 
 
+def default_bgm(base):
+    """폴더에 놓아둔 것을 씁니다 — 글마다 다른 곡을 쓸 수 있게.
+
+    찾는 순서: 글 폴더의 bgm.mp3 → assets/bgm/기본.mp3
+    둘 다 없으면 배경음 없이 갑니다.
+    """
+    for p in (base / "bgm.mp3", ROOT / "assets" / "bgm" / "기본.mp3"):
+        if p.exists():
+            return str(p)
+    return ""
+
+
+def default_chime(base):
+    for p in (base / "chime.mp3", ROOT / "assets" / "bgm" / "알림음.mp3"):
+        if p.exists():
+            return str(p)
+    return ""
+
+
 def assemble(parts, total, out):
     """무음 바닥 위에 각 대사를 시작 시각에 배치합니다.
 
@@ -84,6 +103,9 @@ def main():
     ap.add_argument("--rate", default="+0%")
     ap.add_argument("--pitch", default="+0Hz")
     ap.add_argument("--engine", default="edge", choices=["edge", "azure"])
+    ap.add_argument("--bgm", default="", help="배경음 파일 (없으면 assets/bgm/기본.mp3)")
+    ap.add_argument("--bgm-db", type=float, default=3.0, help="배경음 크기")
+    ap.add_argument("--chime", default="", help="시작·끝 알림음 파일")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--dry", action="store_true", help="TTS 없이 무음으로 배치만 검증")
     a = ap.parse_args()
@@ -125,6 +147,20 @@ def main():
     if not assemble(parts, total, out):
         print("  대사가 없습니다")
         return 1
+
+    # 배경음 — 고른 음원이 있으면 깔고, 없으면 대사만 둡니다.
+    # 대사가 6초 장면에 3~4초라 빈 구간이 생깁니다. 그 자리를 메웁니다.
+    src = a.bgm or default_bgm(base)
+    if src:
+        import bgm as B
+        tmpd = pathlib.Path(tempfile.mkdtemp())
+        bed = B.prepare(src, total, tmpd / "bed.mp3")
+        chime = a.chime or default_chime(base)
+        voiced = tmpd / "voice.mp3"
+        voiced.write_bytes(out.read_bytes())
+        B.mix(voiced, bed, out, chimes=chime, bed_db=a.bgm_db)
+        print(f"[voice] 배경음 {pathlib.Path(src).name} ({a.bgm_db:+}dB)"
+              + (f" · 알림음 {pathlib.Path(chime).name}" if chime else ""))
     print(f"[voice] {out}")
     return 0
 
