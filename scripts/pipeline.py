@@ -49,7 +49,11 @@ def page(body_css, cls, inner, w, h):
             f'</style></head><body style="--cat:{cat_color(cls)}">{inner}</body></html>')
 
 CARD_CSS = """.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
-.wrap{width:1080px;height:1350px;padding:70px 76px 64px;display:flex;flex-direction:column}
+/* 채널 워터마크 — 왼쪽 위 모서리. 영상(motion.py)과 같은 자리입니다.
+   예전에는 분야칩 줄과 제목 사이에 끼어 있어 둘 사이에 묻혔습니다. */
+.brand{position:absolute;top:48px;left:48px;font-size:26px;font-weight:800;
+color:var(--ink-soft);letter-spacing:.08em}
+.wrap{width:1080px;height:1350px;padding:128px 76px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center}.badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;
 font-weight:900;padding:10px 22px;border-radius:999px}.pg{margin-left:auto;font-size:26px;
 font-weight:800;color:var(--ink-soft)}.dd{margin-left:14px;background:var(--ink);color:var(--paper);
@@ -113,12 +117,15 @@ font-weight:800;color:var(--ink-soft);text-align:right}
 .cmpr .cv{font-size:48px;font-weight:900;color:var(--cat);margin-bottom:10px}
 .cmpr .cb{height:16px;background:var(--line);border-radius:999px;overflow:hidden}
 .cmpr .cb>i{display:block;height:100%;background:var(--cat);border-radius:999px}
-.wrap{width:1080px;height:1350px;padding:76px 72px 64px;display:flex;flex-direction:column}
+.wrap{width:1080px;height:1350px;padding:128px 72px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
 .badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;font-weight:800;padding:9px 20px;border-radius:999px}
 .through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
 .dd{background:var(--ink);color:var(--paper);font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
-.brand{font-size:24px;font-weight:800;color:var(--ink-soft);margin:6px 0 2px}
+/* 채널 워터마크 — 왼쪽 위 모서리. 영상(motion.py)과 같은 자리입니다.
+   예전에는 분야칩 줄과 제목 사이에 끼어 있어 둘 사이에 묻혔습니다. */
+.brand{position:absolute;top:48px;left:48px;font-size:26px;font-weight:800;
+color:var(--ink-soft);letter-spacing:.08em}
 h1{font-weight:900;line-height:1.18;letter-spacing:-.035em}
 .sub{margin-top:18px;font-size:30px;color:var(--ink-soft);line-height:1.45}
 .rule{height:6px;background:var(--cat);width:96px;border-radius:3px;margin:32px 0 30px}
@@ -134,42 +141,10 @@ overflow:hidden;text-overflow:ellipsis}
 .cta{background:var(--ink);color:var(--paper);font-size:26px;font-weight:800;
 padding:18px 28px;border-radius:14px;text-align:center;word-break:keep-all}"""
 
-SCENE_CSS = """.wrap{width:1080px;height:1920px;padding:210px 150px 430px 150px;display:flex;flex-direction:column}
-.top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
-.badge{border:3px solid var(--cat);color:var(--cat);background:transparent;font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
-.through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;white-space:nowrap}
-.pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
-.body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px}
-.step{font-family:inherit;font-size:24px;font-weight:800;color:var(--ink-soft);
-letter-spacing:.08em;margin-top:26px}
-.cv .head{line-height:1.15;margin-bottom:8px}
-.cv .desc{font-size:42px;margin-top:22px}
-.cv .pts{margin-top:52px}
-.cv .pt{padding:24px 2px;font-size:38px}
-.cv .pt span{min-width:250px}
-.cv .voice{font-size:36px;padding:28px}
-.pts{margin-top:30px;border-top:2px solid var(--line);padding-top:6px}
-.pt{display:flex;align-items:baseline;gap:20px;padding:16px 2px;
-border-bottom:1px solid var(--line);font-size:32px;word-break:keep-all}
-.pt span{color:var(--ink-soft);font-weight:700;flex:none;min-width:210px}
-.pt b{font-weight:800;color:var(--ink)}
-.voice{margin-top:auto;padding:22px 24px;background:var(--paper-2);border-radius:14px;
-font-size:32px;font-weight:700;line-height:1.5;color:var(--ink);word-break:keep-all}
-.voice::before{content:"짚고 넘어가면 ";color:var(--cat);font-weight:900}
-.foot{display:flex;font-size:22px;color:var(--ink-soft);border-top:2px solid var(--line);
-padding-top:20px;margin-top:24px}
-.fr{margin-left:auto;font-weight:800}
-.kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
-.head{font-weight:900;line-height:1.18;letter-spacing:-.035em}
-.big{font-size:150px;font-weight:900;color:var(--cat);letter-spacing:-.05em;margin:36px 0}
-.tbl{width:100%;border-collapse:collapse;font-size:36px}
-.tbl td{padding:16px 12px;border-bottom:2px solid var(--line);font-weight:700}
-.tbl td:last-child{text-align:right;color:var(--cat);font-weight:900}
-.dd{position:absolute;top:210px;right:100px;background:var(--ink);color:var(--paper);
-font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
-.cap{position:absolute;left:100px;right:190px;bottom:460px;font-size:46px;font-weight:800;
-line-height:1.35;border-left:8px solid var(--cat);padding-left:26px}
-.brand{position:absolute;left:100px;bottom:625px;font-size:26px;font-weight:800;color:var(--ink-soft)}"""
+# 영상 장면 CSS 는 여기 없습니다 — `motion.py` 가 유일한 영상 렌더러입니다.
+# 예전에 SCENE_CSS 라는 복사본이 여기 있었는데, 아무도 쓰지 않으면서
+# 여백값만 옛것(150/430)으로 남아 '어느 쪽이 진짜냐'를 흐렸습니다.
+
 
 def shoot(pages, outdir, w, h):
     from playwright.sync_api import sync_playwright
@@ -222,18 +197,13 @@ def build_images(d, base):
         if base_name not in _iss:
             _iss.append(base_name)
     src = " · ".join(_iss)
-    poster = page(POST_CSS, m["category"], f'''<div class="wrap">
+    poster = page(POST_CSS, m["category"], f'''<div class="brand">@machimaza</div>
+<div class="wrap">
 <div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}{dd}</div>
-<div class="brand">@machimaza</div>
 <h1 style="font-size:{az(m["title"],76,0.9,52)}px">{esc(m["title"])}</h1>
 <div class="sub">{esc(m.get("subtitle",d["summary"])[:70])}</div><div class="rule"></div>
 <div class="list">{rows}</div><div class="foot"><div class="src">출처 · {esc(src)} ({m["publish_date"]} 기준)</div>
 <div class="cta">{esc(d.get("cta","저장해두세요"))}</div></div></div>''', 1080, 1350)
-    def card(pg_no, kicker, head, big, desc, foot, hf):
-        return page(CARD_CSS, m["category"], f'''<div class="wrap{' cv' if cover else ''}">
-<div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}</div>
-<div class="body">{kicker}<div class="head" style="font-size:{hf}px">{head}</div>{big}{desc}</div>
-<div class="foot"><b>마치마자</b> · {foot}</div></div>''', 1080, 1350)
     # 카드는 영상과 같은 flow 를 그립니다.
     # 예전에는 items 를 그대로 카드로 찍어서, 카드 다섯 장이 전부 가격표였습니다.
     # 영상에서 고친 문제(자격·기한·신청 방법이 없음)가 카드에도 똑같이 있었습니다.
@@ -256,10 +226,11 @@ def build_images(d, base):
             pts = '<div class="pts">' + "".join(
                 f'<div class="pt"><span>{esc(k)}</span><b>{esc(v)}</b></div>'
                 for k, v in points) + '</div>'
-        return page(CARD_CSS, m["category"], f'''<div class="wrap{' cv' if cover else ''}">
+        return page(CARD_CSS, m["category"], f'''<div class="brand">@machimaza</div>
+<div class="wrap{' cv' if cover else ''}">
 <div class="top"><div class="badge">{esc(m["category"])}</div>{th}</div>
 {pg}<div class="body">{body}{pts}{vo}</div>
-<div class="foot"><b>마치마자</b> · {esc(_basis)} · {esc(_src1)}<span class="fr">{foot}</span></div>
+<div class="foot">{esc(_basis)} · {esc(_src1)}<span class="fr">{foot}</span></div>
 </div>''', 1080, 1350)
 
     def card_for(sc, idx, last):
