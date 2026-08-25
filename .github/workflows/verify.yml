@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euxo pipefail
           python -m pip install -q --upgrade pip
-          python -m pip install -q playwright pillow numpy markdown
+          python -m pip install -q -r requirements.txt
           python -c "import PIL, numpy, markdown; print('py deps ok')"
 
       - name: 브라우저
