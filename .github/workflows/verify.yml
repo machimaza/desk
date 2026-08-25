@@ -59,8 +59,9 @@ jobs:
         run: |
           set -euo pipefail
           # 목록은 파일로 넘깁니다.
-          # 예전에는 ${{ }} 로 여러 줄 값을 for 목록에 넣었는데,
+          # 예전에는 워크플로 표현식으로 여러 줄 값을 for 목록에 직접 넣었는데,
           # 목록 안의 줄바꿈이 목록을 끝내서 bash 문법 오류(exit 2)가 났습니다.
+          # 표현식 리터럴을 주석에 적는 것도 금지입니다 — 아래 2번 사고 참고.
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             git diff --name-only HEAD~1 HEAD \
               | grep '^content/' | cut -d/ -f1,2 | sort -u > /tmp/dirs.txt || true
