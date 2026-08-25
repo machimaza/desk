@@ -2,6 +2,7 @@
 content/**/video.mp4
 content/**/cover.png
 content/**/thumb.png
+brand/art/*.png
 content/**/images/*.png
 assets/*.mp3
 assets/*.wav
