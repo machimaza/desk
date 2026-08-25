@@ -193,18 +193,45 @@ def make(total, out, style="pad", chimes=True):
     return out
 
 
+def place_chimes(src, total, out, end_db=-5.0, tail=2.4, chime_db=-2.0):
+    """고른 알림음을 시작과 끝에 놓습니다.
+
+    직접 합성하지 않고 파일을 그대로 씁니다 — 귀에 맞는 소리는 사람이 고르는 게 낫습니다.
+    끝음은 조금 작게 둡니다. 시작은 부르는 소리, 끝은 닫는 소리라 무게가 다릅니다.
+    """
+    end_at = max(0.0, total - tail)
+    subprocess.run([
+        "ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-i", str(src),
+        "-filter_complex",
+        f"[0:a]volume={chime_db}dB,adelay=0|0[a0];"
+        f"[1:a]volume={chime_db + end_db}dB,"
+        f"adelay={int(end_at*1000)}|{int(end_at*1000)}[a1];"
+        f"[a0][a1]amix=inputs=2:duration=longest:normalize=0,"
+        f"apad,atrim=0:{total:.2f}[a]",
+        "-map", "[a]", "-c:a", "libmp3lame", "-q:a", "4", str(out)], check=True)
+    return out
+
+
+# 어떤 곡을 골라오든 같은 크기로 맞춥니다.
+# 받아온 파일마다 녹음 크기가 제각각이라(-12dB 짜리도 있고 -30dB 짜리도 있습니다)
+# 그대로 쓰면 곡을 바꿀 때마다 다시 귀로 맞춰야 합니다.
+BED_LUFS = -31
+
+
 def prepare(src, total, out, fade_in=0.6, fade_out=1.8):
     """골라온 음원을 영상 길이에 맞춥니다.
 
     짧으면 이어붙이고, 길면 자릅니다. 앞뒤는 눕힙니다 —
     갑자기 시작하거나 뚝 끊기면 그것만 귀에 걸립니다.
+    크기도 여기서 한 번 고르게 맞춥니다.
     """
     subprocess.run([
         "ffmpeg", "-y", "-loglevel", "error",
         "-stream_loop", "-1", "-i", str(src), "-t", f"{total:.2f}",
-        "-af", f"afade=t=in:st=0:d={fade_in},"
+        "-af", f"loudnorm=I={BED_LUFS}:TP=-3:LRA=11,"
+               f"afade=t=in:st=0:d={fade_in},"
                f"afade=t=out:st={max(0.0, total - fade_out):.2f}:d={fade_out}",
-        "-c:a", "libmp3lame", "-q:a", "4", str(out)], check=True)
+        "-ac", "1", "-c:a", "libmp3lame", "-q:a", "4", str(out)], check=True)
     return out
 
 
