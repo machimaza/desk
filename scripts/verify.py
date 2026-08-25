@@ -236,6 +236,24 @@ def main(base):
         W.append("Pillow 없음 — 화면 밀도 검사를 건너뜁니다")
 
     # --- 7. 영상 규격 ---
+    # 먼저 산출물이 지금 data.json 에서 나온 것인지 봅니다.
+    # 옛 산출물을 최신인 줄 알고 재면, 게이트가 엉뚱한 곳을 가리킵니다.
+    import hashlib
+    cur_sha = hashlib.sha1((base/"data.json").read_bytes()).hexdigest()
+    stampf = base/".render.json"
+    stamped = json.loads(stampf.read_text(encoding="utf-8")) if stampf.exists() else {}
+    for kind, marker, how in (("video", base/"video.mp4", "python scripts/motion.py"),
+                              ("images", base/"images"/"poster.png", "python scripts/pipeline.py")):
+        if not marker.exists():
+            continue
+        was = stamped.get(kind)
+        if was is None:
+            W.append(f"{kind} 산출물의 출처 기록 없음 — 다시 렌더하면 사라집니다 ({how} {base})")
+        elif was != cur_sha:
+            E.append(f"{kind} 산출물이 지금 data.json 보다 옛것 — 다시 렌더하세요 ({how} {base})")
+    if stamped and all(v == cur_sha for v in stamped.values()):
+        ok("산출물이 지금 data.json 에서 나온 것")
+
     vid = base/"video.mp4"
     if vid.exists():
         # 오디오 스트림 — 없으면 쇼츠·틱톡에서 불리하거나 거부됩니다
