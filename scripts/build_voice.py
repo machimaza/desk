@@ -102,7 +102,7 @@ def main():
         d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                                   "format=duration", "-of", "csv=p=0", str(p)],
                                  capture_output=True, text=True).stdout.strip() or 0)
-        flag = "  ⚠ 장면보다 길" if d > dur else ""
+        flag = "  ⚠ 장면보다 김" if d > dur else ""
         print(f"  {i+1:>2}. {st:>5.1f}초  대사 {d:4.1f}초 / 장면 {dur:4.1f}초{flag}")
         parts.append((i, st, p))
 
