@@ -287,11 +287,13 @@ def scene_title(m, hook, dd):
   {dd}
 </div></div><div class="cap" id="c">{esc(hook)}</div>
 <!--BOT-->'''
-    js = '''window.draw=(t)=>{
-  enter(document.getElementById('h'), easeOut(seg(t,0.05,0.7)));
-  enter(document.getElementById('c'), easeOut(seg(t,0.8,0.6)));
-};'''
-    return page(m["category"], inner, js), 1.6, 3.0
+    # 제목 화면은 **움직이지 않습니다.** 0.00초 프레임이 곧 썸네일이기 때문입니다.
+    # 쇼츠 썸네일은 유튜브가 고르고 나중에 바꿀 수 없는데(10장),
+    # 글자가 없다가 올라오는 연출이면 첫 프레임이 빈 화면입니다 —
+    # 하필 그게 걸리면 아무것도 안 적힌 카드가 채널에 남습니다.
+    # 그래서 draw 는 아무것도 하지 않고, 첫 프레임부터 제목·기한·자막이 다 떠 있습니다.
+    js = "window.draw=(t)=>{};"
+    return page(m["category"], inner, js), 0.1, 4.5
 
 
 def scene_value(m, it, pg, ratio):
@@ -639,6 +641,29 @@ FIT_JS = """() => {
 }"""
 
 
+# 0.00초 프레임이 썸네일로 쓸 만한지 — 글자가 실제로 떠 있는지 잽니다.
+# opacity 0 이나 아래로 밀린 상태(등장 연출 중간)면 빈 카드가 채널에 남습니다.
+FIRST_JS = r"""() => {
+  const bad = [];
+  const need = ['.head', '.cap', '.through', '.badge'];
+  need.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const st = getComputedStyle(el);
+    if (parseFloat(st.opacity) < 0.99) bad.push(sel + ' 가 아직 투명합니다');
+    const tr = st.transform;
+    if (tr && tr !== 'none' && !/matrix\(1, 0, 0, 1, 0, 0\)/.test(tr)) {
+      bad.push(sel + ' 가 아직 움직이는 중입니다');
+    }
+  });
+  const dd = document.querySelector('.ddp');
+  if (dd && parseFloat(getComputedStyle(dd).opacity) < 0.99) {
+    bad.push('기한 배지가 아직 투명합니다');
+  }
+  return bad;
+}"""
+
+
 def render(d, base, keep_frames=False):
     global ACCENT
     ACCENT = d["meta"].get("accent", 0)
@@ -657,6 +682,17 @@ def render(d, base, keep_frames=False):
                         .replace("<!--PRG-->", prog_bar(si, len(scenes))))
             pg.set_content(html, wait_until="load")
             pg.wait_for_timeout(80)
+            if si == 0:
+                # 0.00초 프레임 = 썸네일. 비어 있으면 여기서 멈춥니다.
+                pg.evaluate("t=>window.draw(t)", 0.0)
+                faint = pg.evaluate(FIRST_JS)
+                if faint:
+                    b.close()
+                    raise SystemExit(
+                        "[1번째 장면] 0.00초 프레임이 비어 있습니다 — "
+                        + " / ".join(faint)
+                        + "\n  쇼츠 썸네일은 유튜브가 고르고 바꿀 수 없습니다."
+                        + "\n  제목 화면은 등장 연출 없이 처음부터 다 떠 있어야 합니다.")
             hits = pg.evaluate(FIT_JS)
             if hits:
                 b.close()
