@@ -423,6 +423,12 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     return page(m["category"], inner, js), 1.8, 4.4
 
 
+# 도입부 — 벨이 울리고 "집중시키는 말"이 나갈 자리입니다.
+# 첫 장면(제목 카드)을 이만큼 더 붙잡아 둡니다.
+# 이걸 안 두면 벨과 첫 대사가 겹쳐서 둘 다 안 들립니다.
+LEAD_IN = 4.2
+
+
 # ── 렌더 ───────────────────────────────────────────────────────────────
 
 def build_scenes(d):
@@ -442,7 +448,10 @@ def build_scenes(d):
         for sc in d["flow"]["scenes"]:
             ty = sc["type"]
             if ty == "hook":
-                S.append(scene_title(m, sc["screen"], dday_for(sc)))
+                page, anim, hold = scene_title(m, sc["screen"], dday_for(sc))
+                if d["flow"].get("opener"):
+                    hold += LEAD_IN     # 도입부 대사가 나갈 동안 제목을 붙잡습니다
+                S.append((page, anim, hold))
             elif ty == "fact":
                 S.append(scene_fact(m, sc, dday_for(sc)))
             elif ty == "compare":
