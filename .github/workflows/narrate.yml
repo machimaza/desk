@@ -12,17 +12,17 @@ on:
         options: [samples, build]
         default: samples
       content:
-        description: '콘텐츠 폴더 (build 일 때)'
-        default: content/2026-08-24-건강보험-환급금
+        description: '콘텐츠 폴더 — 여러 개면 띄어쓰기로 나열'
+        default: content/2026-08-24-건강보험-환급금 content/2026-08-24-퇴직후-건강보험료
       voice:
         description: '음성 이름 — build 와 variants 에서 씁니다'
         default: ko-KR-HyunsuNeural
       rate:
         description: '말 빠르기'
-        default: '+0%'
+        default: '+15%'
       pitch:
         description: '목소리 높낮이'
-        default: '+0Hz'
+        default: '+10Hz'
       samples:
         description: '샘플 범위 — korean 으로 목소리 고르고, variants 로 다듬습니다'
         type: choice
@@ -98,12 +98,19 @@ jobs:
         if: inputs.mode == 'build'
         run: |
           set -euo pipefail
-          test -f "$CONTENT/data.json"
-          python scripts/build_voice.py "$CONTENT" --voice "$VOICE" \
-            --rate "$RATE" --pitch "$PITCH" --engine "$ENGINE"
-          python scripts/motion.py "$CONTENT"
-          python scripts/make_images.py "$CONTENT"
-          ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$CONTENT/video.mp4"
+          # 여러 폴더를 받습니다. 한 편만 만들려고 워크플로를 두 번 돌리는 건
+          # 러너 준비(패키지·크로미움)를 두 번 하는 낭비입니다.
+          for c in $CONTENT; do
+            echo "::group::$c"
+            test -f "$c/data.json"
+            python scripts/build_voice.py "$c" --voice "$VOICE" \
+              --rate "$RATE" --pitch "$PITCH" --engine "$ENGINE"
+            python scripts/make_images.py "$c"
+            python scripts/motion.py "$c"
+            ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$c/video.mp4"
+            python scripts/verify.py "$c"
+            echo "::endgroup::"
+          done
 
       - name: 결과 받기
         if: always()
@@ -114,5 +121,7 @@ jobs:
             samples/
             content/*/video.mp4
             content/*/narration.mp3
+            content/*/video.srt
+            content/*/cover.png
           retention-days: 14
           if-no-files-found: warn
