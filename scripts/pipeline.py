@@ -335,6 +335,8 @@ def build_images(d, base):
         alt.append(f'card_{i+1:02d}.png\t{t}. {sc.get("screen","")}')
     (base/"images"/"alt.txt").write_text("\n".join(alt), encoding="utf-8")
     print(f"[images] {len(w)}장 + alt.txt")
+    import motion
+    motion.stamp(base, "images")
 
 def build_video(d, base, target=None):
     """영상은 motion.py 가 담당합니다.
