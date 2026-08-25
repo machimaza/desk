@@ -288,7 +288,8 @@ def scene_title(m, hook, dd):
 </div></div><div class="cap" id="c">{esc(hook)}</div>
 <!--BOT-->'''
     # 제목 화면은 **움직이지 않습니다.** 0.00초 프레임이 곧 썸네일이기 때문입니다.
-    # 쇼츠 썸네일은 유튜브가 고르고 나중에 바꿀 수 없는데(10장),
+    # 쇼츠 썸네일은 유튜브가 아무 프레임이나 집습니다(10장). 나중에 스튜디오에서
+    # 바꿀 수는 있지만 손으로 해야 하고, 바꾸기 전까지는 그게 그대로 걸려 있습니다.
     # 글자가 없다가 올라오는 연출이면 첫 프레임이 빈 화면입니다 —
     # 하필 그게 걸리면 아무것도 안 적힌 카드가 채널에 남습니다.
     # 그래서 draw 는 아무것도 하지 않고, 첫 프레임부터 제목·기한·자막이 다 떠 있습니다.
@@ -691,7 +692,7 @@ def render(d, base, keep_frames=False):
                     raise SystemExit(
                         "[1번째 장면] 0.00초 프레임이 비어 있습니다 — "
                         + " / ".join(faint)
-                        + "\n  쇼츠 썸네일은 유튜브가 고르고 바꿀 수 없습니다."
+                        + "\n  쇼츠 썸네일은 유튜브가 아무 프레임이나 집습니다."
                         + "\n  제목 화면은 등장 연출 없이 처음부터 다 떠 있어야 합니다.")
             hits = pg.evaluate(FIT_JS)
             if hits:
@@ -706,6 +707,11 @@ def render(d, base, keep_frames=False):
             for i in range(n):
                 pg.evaluate("t=>window.draw(t)", i / FPS)
                 pg.screenshot(path=str(fdir / f"f{i:04d}.png"))
+            if si == 0:
+                # 썸네일로 쓸 파일 — 0.00초 프레임 그대로입니다.
+                # 쇼츠 썸네일은 올린 뒤에도 유튜브 스튜디오(웹)에서 바꿀 수 있습니다.
+                # 손으로 올려야 하므로 파일을 여기서 함께 내놓습니다.
+                (base / "thumb.png").write_bytes((fdir / "f0000.png").read_bytes())
             # 움직이는 구간
             ca = tmp / f"a{si:02d}.mp4"
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS),
@@ -806,6 +812,8 @@ def main(argv):
     print(f"[video] {out.name} · {dur:.1f}초 · 구조 {d['meta'].get('video_structure','countdown')} "
           f"· 음성 {'있음' if has_narr else '없음(무음)'} · 워터마크 {HANDLE} "
           f"· 강조색 {cat_color(d['meta']['category'], ACCENT)}(accent {ACCENT})")
+    if (base / "thumb.png").exists():
+        print(f"[thumb] thumb.png — 유튜브 스튜디오(웹)에서 손으로 올리세요")
     return 0
 
 
