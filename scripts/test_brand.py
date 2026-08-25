@@ -75,6 +75,33 @@ def check_channels():
     return bad
 
 
+def check_shared_places():
+    """영상(motion.py)과 포스터·카드(pipeline.py)가 같은 요소를 같은 자리에 그리는지.
+
+    자리는 CLAUDE.md 9장에 한 번 적히지만, 그리는 코드는 두 곳입니다.
+    한쪽만 옮기면 같은 글이 매체마다 다른 얼굴이 됩니다 — 그리고 아무도 오류를 안 냅니다.
+    기한 배지가 실제로 그랬습니다: 상단 줄 → 제목 아래로 옮기면서 두 파일을 같이 고쳐야 했습니다.
+    """
+    out = []
+    for name in ("motion.py", "pipeline.py"):
+        f = ROOT / "scripts" / name
+        if not f.exists():
+            continue
+        t = f.read_text(encoding="utf-8")
+        if ".ddp{" not in t:
+            out.append(f"{name} 에 기한 배지(.ddp) 가 없습니다 — 9장 '기한 배지' 참고")
+        if ".dd{" in t:
+            out.append(f"{name} 에 옛 기한 배지(.dd) 가 남아 있습니다 — 상단 줄 자리입니다")
+        # 상단 줄에는 분야칩과 관통 단어 둘까지입니다. 배지가 그 줄로 돌아가면 잡습니다.
+        # motion.py 는 top_bar() 가 그 줄을 만듭니다 — 배지를 받으면 다시 세 개가 됩니다.
+        for i, line in enumerate(t.splitlines(), 1):
+            if line.startswith("def top_bar(") and "dd" in line:
+                out.append(f"{name}:{i} top_bar 가 기한 배지를 받습니다 — 상단 줄은 둘까지")
+            if 'class="top"' in line and "{dd}" in line:
+                out.append(f"{name}:{i} 기한 배지가 상단 줄 안에 있습니다 — 제목 아래로")
+    return out
+
+
 def main():
     if not TOKENS.exists():
         print(f"[실패] {TOKENS} 가 없습니다")
@@ -112,6 +139,13 @@ def main():
         for name, i, h, line in bad:
             print(f"  {name}:{i}  {h}   {line}")
         print("\n  → 이 색을 계속 쓰려면 brand/tokens.css 에 먼저 넣으세요.")
+        return 1
+
+    sh = check_shared_places()
+    if sh:
+        print("[실패] 영상과 포스터가 같은 자리를 안 씁니다")
+        for m in sh:
+            print("  " + m)
         return 1
 
     ch = check_channels()

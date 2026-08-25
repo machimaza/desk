@@ -70,8 +70,7 @@ color:var(--ink-soft);letter-spacing:.08em}
 .wrap{width:1080px;height:1350px;padding:128px 76px 64px;display:flex;flex-direction:column}
 .top{display:flex;align-items:center}.badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;
 font-weight:900;padding:10px 22px;border-radius:999px}.pg{margin-left:auto;font-size:26px;
-font-weight:800;color:var(--ink-soft)}.dd{margin-left:14px;background:var(--ink);color:var(--paper);
-font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
+font-weight:800;color:var(--ink-soft)}
 .body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px}
 .step{font-family:inherit;font-size:24px;font-weight:800;color:var(--ink-soft);
 letter-spacing:.08em;margin-top:26px}
