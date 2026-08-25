@@ -40,10 +40,14 @@ CSS = """
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
   width:1080px;height:1920px;overflow:hidden}
 /* 좌우 여백은 같아야 합니다. 예전에 왼쪽 100 / 오른쪽 190 이라
-   글이 왼쪽으로 밀려 보였습니다. 오른쪽을 넓게 뒀던 건 쇼츠의
-   좋아요·공유 버튼을 피하려던 것인데, 150 이면 충분히 비켜갑니다.
-   아래 720 은 제목·설명이 덮는 자리라 그대로 둡니다. */
-.wrap{width:1080px;height:1920px;padding:210px 150px 720px 150px;
+   글이 왼쪽으로 밀려 보였습니다.
+
+   그런데 오른쪽 190 은 멋대로 정한 값이 아니라 유튜브가 밝힌 안전영역이었습니다
+   (좋아요·공유 버튼이 덮는 자리, 권장 192px). 150 으로 줄이면 버튼에 가립니다.
+   그래서 좁은 쪽을 넓히는 방향으로 맞춥니다 — 양쪽 190.
+   글 폭이 780 → 700 으로 줄지만, 가려지는 것보다 낫습니다.
+   아래 720 도 제목·설명이 덮는 자리라 그대로 둡니다(권장 672). */
+.wrap{width:1080px;height:1920px;padding:210px 190px 720px 190px;
   display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
 /* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
@@ -101,17 +105,17 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .tbl th:first-child{text-align:left}
 .tbl td.same{text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl{font-variant-numeric:tabular-nums}
-.dd{position:absolute;top:210px;right:150px;background:var(--ink);color:var(--paper);
+.dd{position:absolute;top:210px;right:190px;background:var(--ink);color:var(--paper);
   font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
 /* 자막·출처·진행바도 좌우를 같게 둡니다. 본문만 가운데로 맞추고
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
-.cap{position:absolute;left:150px;right:150px;bottom:460px;font-size:46px;font-weight:800;
+.cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
   line-height:1.35;word-break:keep-all;text-align:center}
-.brand{position:absolute;left:150px;right:150px;bottom:625px;font-size:26px;
+.brand{position:absolute;left:190px;right:190px;bottom:625px;font-size:26px;
   font-weight:800;color:var(--ink-soft);text-align:center}
-.basis{position:absolute;left:150px;right:150px;bottom:672px;font-size:28px;
+.basis{position:absolute;left:190px;right:190px;bottom:672px;font-size:28px;
   font-weight:700;color:var(--ink-soft);letter-spacing:-.01em;text-align:center}
-.prog{position:absolute;left:150px;right:150px;top:322px;height:6px;
+.prog{position:absolute;left:190px;right:190px;top:322px;height:6px;
   background:var(--line);border-radius:999px;overflow:hidden}
 .prog>i{display:block;height:100%;background:var(--cat);border-radius:999px}
 """
