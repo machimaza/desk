@@ -1,0 +1,13 @@
+{
+  "_설명": "채널 핸들·주소의 유일한 출처. 여기만 고치면 워터마크·설명란·홈페이지가 함께 바뀝니다.",
+  "_주의": "인스타·쓰레드만 machi_maza 입니다. machimaza 는 이미 쓰이고 있어서 밑줄을 넣었습니다. 섞어 쓰면 검색해서 못 찾습니다.",
+  "기본핸들": "@machimaza",
+  "채널": [
+    {"키": "naver",     "이름": "네이버 블로그", "핸들": "@machimaza",  "주소": "https://blog.naver.com/machimaza",      "묶음": "블로그"},
+    {"키": "tistory",   "이름": "티스토리",     "핸들": "@machimaza",  "주소": "https://machimaza.tistory.com",        "묶음": "블로그"},
+    {"키": "youtube",   "이름": "유튜브",       "핸들": "@machimaza",  "주소": "https://www.youtube.com/@machimaza",   "묶음": "영상"},
+    {"키": "tiktok",    "이름": "틱톡",         "핸들": "@machimaza",  "주소": "https://www.tiktok.com/@machimaza",    "묶음": "영상"},
+    {"키": "instagram", "이름": "인스타그램",   "핸들": "@machi_maza", "주소": "https://www.instagram.com/machi_maza", "묶음": "소셜"},
+    {"키": "threads",   "이름": "쓰레드",       "핸들": "@machi_maza", "주소": "https://www.threads.net/@machi_maza",  "묶음": "소셜"}
+  ]
+}

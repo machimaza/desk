@@ -74,10 +74,17 @@ jobs:
       - name: 만들기
         run: |
           set -euo pipefail
+          # 같은 영상이 유튜브(@machimaza)에도 가고 쓰레드(@machi_maza)에도 갑니다.
+          # 워터마크는 어디로 보내느냐를 따라갑니다 — 핸들은 channels.json 이 답합니다.
+          if [ "${{ inputs.target }}" = "threads" ]; then
+            CH=threads
+          else
+            CH=youtube
+          fi
           python scripts/build_voice.py "$CONTENT" \
             --voice ko-KR-HyunsuNeural --rate '+15%' --pitch '+10Hz' --engine azure
           python scripts/make_images.py "$CONTENT"
-          python scripts/motion.py "$CONTENT"
+          python scripts/motion.py "$CONTENT" --channel "$CH"
           python scripts/build_publish.py "$CONTENT"
 
       - name: 검수 게이트

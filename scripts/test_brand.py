@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""렌더러가 브랜드 색을 제멋대로 쓰지 않는지 확인합니다.
+"""브랜드가 한 곳에서만 정해지는지 확인합니다 — 색과 채널 핸들.
 
 왜 필요한가
   `brand/tokens.css` 는 "색의 단일 소스"라고 적혀 있었지만 실제로는
@@ -16,6 +16,7 @@
 
 사용:  python3 scripts/test_brand.py
 """
+import json
 import pathlib
 import re
 import sys
@@ -35,6 +36,43 @@ def norm(h):
     if len(h) == 4:                      # #abc → #aabbcc
         h = "#" + "".join(c * 2 for c in h[1:])
     return h
+
+
+# ── 채널 핸들 ─────────────────────────────────────────────────────────
+# 인스타·쓰레드만 @machi_maza 입니다(machimaza 가 이미 있었습니다).
+# 이 사실이 세 파일에 흩어져 있었습니다 — publish_youtube.py · docs/index.html · BRAND.md.
+# 한 곳만 고치고 나머지를 잊으면, 사람들이 검색해서 못 찾습니다.
+# 이제 channels.json 이 유일한 출처이고, 여기서 대조합니다.
+CHANNELS = ROOT / "channels.json"
+DOCS = ROOT / "docs" / "index.html"
+
+
+def check_channels():
+    bad = []
+    if not CHANNELS.exists():
+        return ["channels.json 이 없습니다"]
+    d = json.loads(CHANNELS.read_text(encoding="utf-8"))
+
+    # 홈페이지에 적힌 주소가 원장과 같은가
+    if DOCS.exists():
+        html = DOCS.read_text(encoding="utf-8")
+        for c in d["채널"]:
+            if c["주소"].rstrip("/") not in html.replace("/\"", "\""):
+                bad.append(f'docs/index.html 에 {c["이름"]} 주소가 없습니다 — {c["주소"]}')
+
+    # 핸들을 코드에 직접 적어두지 않았는가
+    for name in ("motion.py", "pipeline.py", "publish_youtube.py", "publish_threads.py"):
+        f = ROOT / "scripts" / name
+        if not f.exists():
+            continue
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if line.lstrip().startswith("#") or "channels.json" in line:
+                continue
+            for h in ("@machimaza", "@machi_maza", "machimaza.tistory", "blog.naver.com/machimaza"):
+                if h in line:
+                    bad.append(f"{name}:{i} 에 핸들/주소가 직접 적혀 있습니다 — channels.json 을 쓰세요")
+                    break
+    return bad
 
 
 def main():
@@ -62,7 +100,15 @@ def main():
         print("\n  → 이 색을 계속 쓰려면 brand/tokens.css 에 먼저 넣으세요.")
         return 1
 
-    print(f"[통과] 색 {len(known)}개 · 렌더러 {len(RENDERERS)}개 — 어긋남 없음")
+    ch = check_channels()
+    if ch:
+        print("[실패] 채널 핸들이 channels.json 과 어긋납니다")
+        for m in ch:
+            print("  " + m)
+        return 1
+
+    n = len(json.loads(CHANNELS.read_text(encoding="utf-8"))["채널"])
+    print(f"[통과] 색 {len(known)}개 · 렌더러 {len(RENDERERS)}개 · 채널 {n}개 — 어긋남 없음")
     return 0
 
 

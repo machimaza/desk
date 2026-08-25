@@ -26,6 +26,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 UPLOAD_URL = ("https://www.googleapis.com/upload/youtube/v3/videos"
               "?uploadType=resumable&part=snippet,status")
@@ -36,18 +38,30 @@ CATEGORY = "22"      # People & Blogs — 정보 전달 채널에 무난합니�
 # 다른 채널 안내. 유튜브 설명란은 외부 링크에 불이익이 없습니다
 # (쓰레드는 첫 게시물에 링크가 있으면 노출이 줄어 답글로 뺐지만, 여기는 반대입니다).
 # 글을 먼저 둡니다 — 영상은 요약이고, 자세한 건 글에 있습니다.
-CHANNELS = """━━━━━━━━━━━━━━━
-📌 자세한 내용은 블로그에
+def channels_block():
+    """설명란에 붙일 다른 채널 안내.
 
-네이버  https://blog.naver.com/machimaza
-티스토리 https://machimaza.tistory.com
+    주소를 여기 적어두면 채널이 바뀔 때마다 세 파일을 고쳐야 합니다 —
+    실제로 publish_youtube.py · docs/index.html · BRAND.md 에 흩어져 있었습니다.
+    channels.json 하나만 봅니다.
 
-같은 정보를 다른 곳에서도
-인스타  https://www.instagram.com/machi_maza
-쓰레드  https://www.threads.net/@machi_maza
-틱톡    https://www.tiktok.com/@machimaza
-
-마침 필요한 정보를, 알맞게 — 마치마자"""
+    유튜브 자기 자신은 뺍니다. 보고 있는 사람에게 다시 안내할 이유가 없습니다.
+    """
+    d = json.loads((ROOT / "channels.json").read_text(encoding="utf-8"))
+    by = {}
+    for c in d["채널"]:
+        if c["키"] == "youtube":
+            continue
+        by.setdefault(c["묶음"], []).append(c)
+    L = ["━━━━━━━━━━━━━━━", "📌 자세한 내용은 블로그에", ""]
+    for c in by.get("블로그", []):
+        L.append(f'{c["이름"].split()[0]}  {c["주소"]}')
+    L += ["", "같은 정보를 다른 곳에서도"]
+    for g in ("소셜", "영상"):
+        for c in by.get(g, []):
+            L.append(f'{c["이름"]}  {c["주소"]}')
+    L += ["", "마침 필요한 정보를, 알맞게 — 마치마자"]
+    return "\n".join(L)
 
 
 def _conf():
@@ -100,7 +114,7 @@ def build_meta(base, privacy):
     parts = [body, "",
              "정확한 금액과 자격은 소관 기관에서 확인하세요.",
              "출처는 영상 안에 표기했습니다.", "",
-             CHANNELS, "",
+             channels_block(), "",
              " ".join("#" + t.replace(" ", "") for t in meta.get("태그", [])[:4]),
              "#마치마자"]
     desc = "\n".join(parts)[:DESC_MAX]

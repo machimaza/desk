@@ -25,6 +25,8 @@
 """
 import json, re, sys, math, pathlib, subprocess, tempfile, html as H
 
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+
 FPS = 30
 W, HGT = 1080, 1920
 # 플랫폼 UI 가림 영역 — CLAUDE.md 7장 실측값
@@ -186,6 +188,24 @@ def prog_bar(i, n):
             if n > 1 else "")
 
 
+# ── 채널 핸들 ─────────────────────────────────────────────────────────
+# 같은 영상이 유튜브·틱톡(@machimaza)에도 가고 쓰레드·릴스(@machi_maza)에도 갑니다.
+# 그래서 워터마크는 어디로 보내느냐에 따라 달라집니다 —
+# publish.yml 이 target 을 보고 --handle 로 넘깁니다.
+# 값은 channels.json 한 곳에만 둡니다.
+def handle_for(key=None):
+    d = json.loads((ROOT / "channels.json").read_text(encoding="utf-8"))
+    if key:
+        for c in d["채널"]:
+            if c["키"] == key:
+                return c["핸들"]
+        raise SystemExit(f"channels.json 에 '{key}' 가 없습니다")
+    return d["기본핸들"]
+
+
+HANDLE = handle_for()
+
+
 def top_bar(m):
     """좌측 = 분야, 우측 = 관통 단어.
 
@@ -194,7 +214,7 @@ def top_bar(m):
     """
     cat = esc(m["category"])
     th = m.get("throughline")
-    return ('<div class="brand">@machimaza</div>'
+    return (f'<div class="brand">{HANDLE}</div>'
             + f'<div class="top"><div class="badge">{cat}</div>'
             + (f'<div class="through">{esc(th)}</div>' if th else "")
             + '</div>')
@@ -676,11 +696,22 @@ def stamp(base, kind):
 
 
 def main(argv):
-    base = pathlib.Path(argv[1])
+    global HANDLE
+    args = [a for a in argv[1:] if not a.startswith("--")]
+    for i, a in enumerate(argv):
+        if a == "--handle" and i + 1 < len(argv):
+            HANDLE = argv[i + 1]
+            args = [x for x in args if x != HANDLE]
+        elif a.startswith("--handle="):
+            HANDLE = a.split("=", 1)[1]
+        elif a == "--channel" and i + 1 < len(argv):
+            HANDLE = handle_for(argv[i + 1])
+            args = [x for x in args if x != argv[i + 1]]
+    base = pathlib.Path(args[0])
     d = json.loads((base / "data.json").read_text(encoding="utf-8"))
     out, dur, has_narr = render(d, base)
     print(f"[video] {out.name} · {dur:.1f}초 · 구조 {d['meta'].get('video_structure','countdown')} "
-          f"· 음성 {'있음' if has_narr else '없음(무음)'}")
+          f"· 음성 {'있음' if has_narr else '없음(무음)'} · 워터마크 {HANDLE}")
     return 0
 
 

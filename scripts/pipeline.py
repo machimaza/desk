@@ -7,6 +7,8 @@ data.json 하나로 카드/포스터 + 9:16 영상 + 검수까지 처리합니�
 """
 import sys, json, re, pathlib, subprocess, tempfile, html as H, datetime as dt
 
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+
 T = """:root{--ink:#16202E;--ink-soft:#4A5666;--paper:#FBF8F3;--paper-2:#F2ECE1;
 --line:#DED5C6;--cat-health:#2E6B5E;--cat-money:#1F5C8B;--cat-life:#C2703D;
 --font:"Noto Sans CJK KR","Noto Sans KR",sans-serif}
@@ -43,6 +45,20 @@ FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시
             "수익 보장":r"원금\s*보장|확정\s*수익|손실\s*없|수익률\s*보장"}
 def esc(s): return H.escape(str(s))
 def az(t,b,p,f): return max(f,int(b-len(t)*p))
+
+# ── 채널 핸들 ─────────────────────────────────────────────────────────
+# 인스타·쓰레드만 @machi_maza 입니다. machimaza 는 이미 쓰이고 있었습니다.
+# 카드는 인스타로 가고 포스터는 블로그로 가므로, 붙는 핸들이 다릅니다.
+# 값은 channels.json 한 곳에만 둡니다 — 예전에는 세 파일에 흩어져 있었습니다.
+def handle(key=None):
+    d = json.loads((ROOT / "channels.json").read_text(encoding="utf-8"))
+    if key:
+        for c in d["채널"]:
+            if c["키"] == key:
+                return c["핸들"]
+        raise SystemExit(f"channels.json 에 '{key}' 가 없습니다")
+    return d["기본핸들"]
+
 
 def page(body_css, cls, inner, w, h):
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{T}\n{body_css}'
@@ -197,7 +213,7 @@ def build_images(d, base):
         if base_name not in _iss:
             _iss.append(base_name)
     src = " · ".join(_iss)
-    poster = page(POST_CSS, m["category"], f'''<div class="brand">@machimaza</div>
+    poster = page(POST_CSS, m["category"], f'''<div class="brand">{handle("tistory")}</div>
 <div class="wrap">
 <div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}{dd}</div>
 <h1 style="font-size:{az(m["title"],76,0.9,52)}px">{esc(m["title"])}</h1>
@@ -226,7 +242,7 @@ def build_images(d, base):
             pts = '<div class="pts">' + "".join(
                 f'<div class="pt"><span>{esc(k)}</span><b>{esc(v)}</b></div>'
                 for k, v in points) + '</div>'
-        return page(CARD_CSS, m["category"], f'''<div class="brand">@machimaza</div>
+        return page(CARD_CSS, m["category"], f'''<div class="brand">{handle("instagram")}</div>
 <div class="wrap{' cv' if cover else ''}">
 <div class="top"><div class="badge">{esc(m["category"])}</div>{th}</div>
 {pg}<div class="body">{body}{pts}{vo}</div>
@@ -234,7 +250,8 @@ def build_images(d, base):
 </div>''', 1080, 1350)
 
     def card_for(sc, idx, last):
-        ty, foot = sc["type"], ("@machimaza" if last else "넘겨서 →")
+        # 마지막 장에는 핸들로 서명합니다 — 캐러셀 마지막 장이 캡처되는 자리입니다
+        ty, foot = sc["type"], (handle("instagram") if last else "넘겨서 →")
         step = f'{idx+1} / {len(scenes)}'
         voice = sc.get("voice")
         points = sc.get("points")

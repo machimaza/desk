@@ -670,6 +670,21 @@ y=48 은 상단 권장(288)을 크게 벗어납니다. **그래도 두는 이유
 `motion.py` 와 `pipeline.py` 가 각각 그리지만 자리는 하나입니다.
 한쪽만 옮기면 같은 글이 매체마다 다른 얼굴이 됩니다.
 
+**핸들은 매체마다 다릅니다.** 인스타·쓰레드만 `@machi_maza` 입니다 —
+`machimaza` 가 이미 쓰이고 있어서 밑줄을 넣었습니다.
+
+| 무엇 | 어디로 | 워터마크 |
+|---|---|---|
+| 포스터 | 블로그 | `@machimaza` |
+| 카드 | 인스타 캐러셀 | `@machi_maza` |
+| 영상 | 유튜브·틱톡 | `@machimaza` |
+| 영상 | 쓰레드·릴스 | `@machi_maza` |
+
+**같은 영상이 양쪽으로 갑니다.** 그래서 `motion.py` 는 `--channel` 을 받고,
+`publish.yml` 이 `target` 을 보고 넘깁니다. 값은 **`channels.json` 이 유일한 출처**입니다 —
+예전에는 `publish_youtube.py`·`docs/index.html`·`BRAND.md` 세 곳에 흩어져 있었습니다.
+`test_brand.py` 가 코드에 핸들을 직접 적으면 CI 를 멈춥니다.
+
 `motion.py` 의 `FIT_JS` 가 **장면마다 실제 상자를 재고**, 본문이 출처줄·진행바를
 침범하거나 채널명이 칩에 붙으면 그 자리에서 멈춥니다. 브라우저는 넘친 글도 그대로
 그려주기 때문에 **"그려졌다"는 아무 증거가 못 됩니다.**
@@ -858,6 +873,7 @@ machimaza/
 ├── CLAUDE.md              # 이 파일
 ├── rates.json             # ★ 모든 숫자의 유일한 출처
 ├── calendar.json          # 역산 캘린더
+├── channels.json          # 채널 핸들·주소의 유일한 출처 (인스타·쓰레드만 machi_maza)
 ├── brand/tokens.css       # 색·폰트 기준값 (렌더러가 같은 값을 갖고 있는지 test_brand.py 가 대조)
 ├── scripts/
 │   ├── pipeline.py        # 단일 파일 렌더러 + 게이트
@@ -921,7 +937,8 @@ machimaza/
 | `yt_token.py` | 👤 본인 PC 에서 유튜브 갱신 토큰 받기 (한 번만) |
 | `check_remote.py` | 원격이 로컬과 **글자까지** 같은지 blob 해시로 대조 |
 | `test_tts.py` | 빈 시크릿·SSML 회귀 테스트 |
-| `test_brand.py` | 렌더러의 색값이 `brand/tokens.css` 와 같은지 |
+| `test_brand.py` | 렌더러 색이 `tokens.css` 와 같은지 · 핸들이 `channels.json` 밖에 적혔는지 |
+| `channels.json` | **채널 핸들·주소의 유일한 출처** |
 | `build_glossary.py` | 용어 사전 페이지 |
 | `test_*.py` | 검사기가 살아 있는지 확인 (CI 가 콘텐츠보다 먼저 실행) |
 | `requirements.txt` | **패키지 목록의 유일한 출처** — 워크플로 셋이 이것만 봅니다 |
@@ -1132,6 +1149,7 @@ machimaza/
 | `bgm.py` 의 합성 코드 | 사용자가 합성음을 물렸습니다("알림음도 별로임"). 고른 파일을 씁니다 |
 | `pipeline.py` 의 `SCENE_CSS` | 영상 CSS 복사본. 아무도 안 쓰면서 여백만 옛것(150/430)으로 남아 있었습니다 |
 | `pipeline.py` 의 `card()` | flow 이전의 카드 함수. 호출하는 곳이 없고 없는 변수를 참조했습니다 |
+| 핸들 하드코딩 3곳 | `publish_youtube.py`·`docs/index.html`·`BRAND.md`. `channels.json` 하나로 모았습니다 |
 
 ---
 
