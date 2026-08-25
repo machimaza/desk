@@ -74,7 +74,10 @@ jobs:
       - name: 한국어 음성 목록
         run: |
           set -euo pipefail
-          python scripts/build_voice.py . --engine "$ENGINE" --list || true
+          python scripts/tts.py "$ENGINE" ko- || true
+          echo "--- 한국어를 읽을 수 있는 다국어 음성 ---"
+          python scripts/tts.py "$ENGINE" "" 2>/dev/null \
+            | grep -i multilingual || true
 
       - name: 샘플 만들기
         if: inputs.mode == 'samples'
