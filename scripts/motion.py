@@ -53,7 +53,7 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 /* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
 .badge{border:3px solid var(--cat);color:var(--cat);background:transparent;
   font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
-.through{background:var(--ink);color:var(--paper);
+.through{margin-left:auto;background:var(--ink);color:var(--paper);
   font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;
   white-space:nowrap}
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
@@ -113,15 +113,17 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
 .cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
   line-height:1.35;word-break:keep-all;text-align:center}
-/* 채널명은 상단 줄 한가운데. 예전에는 바닥에 있었는데,
-   본문이 길어지면 그 위로 글이 내려앉아 겹쳤습니다 — 실제로 그랬습니다.
+/* 채널명은 맨 꼭대기 한가운데 — 제호 자리입니다.
+   바닥에 있을 때는 본문이 길어지면 그 위로 글이 내려앉아 겹쳤고,
+   분야칩과 관통 단어 사이에 끼웠더니 둘 사이에 묻혔습니다.
 
-   화면 정중앙(x=540)에 절대배치하는 것이 첫 시도였지만 부딪힙니다.
-   왼쪽 분야칩과 오른쪽 관통 단어는 길이가 다르고, 관통 단어가 더 깁니다.
-   그래서 '두 칩 사이의 한가운데'와 '화면 한가운데'가 어긋납니다.
-   플렉스 항목으로 두면 남는 자리를 채널명이 가져가므로 절대 겹치지 않습니다. */
-.brand{flex:1;text-align:center;font-size:28px;font-weight:800;
-  color:var(--ink-soft);letter-spacing:.02em;white-space:nowrap;overflow:hidden}
+   y=100 은 유튜브 상단 안전영역(288) 안입니다. 그래도 되는 이유는
+   유튜브 상단 UI 가 **양 끝에만** 있기 때문입니다 —
+   왼쪽에 뒤로가기, 오른쪽에 검색·더보기, 가운데는 늘 비어 있습니다.
+   그래서 가운데 한 줄만 쓰고, 좌우로는 넓히지 않습니다. */
+.brand{position:absolute;top:100px;left:50%;transform:translateX(-50%);
+  font-size:30px;font-weight:800;color:var(--ink-soft);
+  letter-spacing:.08em;white-space:nowrap}
 .basis{position:absolute;left:190px;right:190px;bottom:672px;font-size:28px;
   font-weight:700;color:var(--ink-soft);letter-spacing:-.01em;text-align:center}
 .prog{position:absolute;left:190px;right:190px;top:322px;height:6px;
@@ -189,8 +191,8 @@ def top_bar(m):
     """
     cat = esc(m["category"])
     th = m.get("throughline")
-    return (f'<div class="top"><div class="badge">{cat}</div>'
-            + '<div class="brand">@machimaza</div>'
+    return ('<div class="brand">@machimaza</div>'
+            + f'<div class="top"><div class="badge">{cat}</div>'
             + (f'<div class="through">{esc(th)}</div>' if th else "")
             + '</div>')
 
@@ -539,16 +541,17 @@ FIT_JS = """() => {
     bad.push(`본문이 진행바를 ${(prog.bottom + 8 - top).toFixed(0)}px 침범`);
   }
 
-  // 채널명이 좌우 칩에 부딪히는지
+  // 채널명은 맨 꼭대기 한 줄. 아래 줄과 부딪히거나 화면 밖으로 나가면 안 됩니다.
   const br = R(document.querySelector('.brand'));
-  [['.badge','분야칩'], ['.through','관통 단어'], ['.dd','우상단 칩']].forEach(([sel, name]) => {
-    const o = R(document.querySelector(sel));
-    if (!br || !o || o.width < 1) return;
-    const gap = 12;
-    const hit = br.left < o.right + gap && br.right + gap > o.left
-             && br.top  < o.bottom + gap && br.bottom + gap > o.top;
-    if (hit) bad.push(`채널명이 ${name} 과 붙음`);
-  });
+  if (br) {
+    if (br.top < 60) bad.push(`채널명이 위로 ${(60 - br.top).toFixed(0)}px 넘침`);
+    const topbar = R(document.querySelector('.top'));
+    if (topbar && br.bottom > topbar.top - 12) {
+      bad.push(`채널명이 분야칩 줄을 ${(br.bottom - topbar.top + 12).toFixed(0)}px 침범`);
+    }
+    // 좌우 UI 가 덮는 자리까지 넓어지지 않았는지 (유튜브 상단은 양 끝만 씁니다)
+    if (br.left < 300 || br.right > 780) bad.push('채널명이 너무 넓음 — 좌우 UI 에 걸립니다');
+  }
 
   // 자막이 출처줄을 밀고 올라오는지
   const cap = R(document.querySelector('.cap'));
