@@ -94,6 +94,18 @@ def say(text, voice, out, rate="+0%", pitch="+0Hz", engine="edge"):
         raise ValueError(f"모르는 엔진: {engine}")
 
 
+def detail(engine="edge", locale="ko-"):
+    """이름만이 아니라 딸린 것까지 — 말투(style)와 세대(VoiceType).
+
+    같은 목소리라도 말투가 여러 개면 고를 거리가 그만큼 늘어납니다.
+    Azure 는 <mstts:express-as> 로 말투를 바꿉니다. edge 는 이 정보를 안 줍니다.
+    """
+    if engine != "azure":
+        return [{"ShortName": n, "Gender": g, "LocalName": l, "StyleList": []}
+                for n, g, l in voices(engine, locale)]
+    return azure_voices(locale)
+
+
 def voices(engine="edge", locale="ko-"):
     if engine == "azure":
         return [(v["ShortName"], v.get("Gender", ""), v.get("LocalName", ""))
@@ -106,5 +118,8 @@ def voices(engine="edge", locale="ko-"):
 
 if __name__ == "__main__":
     eng = sys.argv[1] if len(sys.argv) > 1 else "edge"
-    for name, gender, label in sorted(voices(eng)):
-        print(f"  {name:<34} {gender:<7} {label}")
+    loc = sys.argv[2] if len(sys.argv) > 2 else "ko-"
+    for v in sorted(detail(eng, loc), key=lambda x: x["ShortName"]):
+        st = ", ".join(v.get("StyleList") or []) or "-"
+        print(f"  {v['ShortName']:<38} {v.get('Gender',''):<7} "
+              f"{v.get('VoiceType',''):<14} 말투: {st}")
