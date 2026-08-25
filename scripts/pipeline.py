@@ -135,7 +135,8 @@ font-weight:800;color:var(--ink-soft);text-align:right}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
 .badge{border:2px solid var(--cat);color:var(--cat);background:transparent;font-size:26px;font-weight:800;padding:9px 20px;border-radius:999px}
 .through{margin-left:auto;background:var(--ink);color:var(--paper);font-size:26px;font-weight:900;padding:10px 22px;border-radius:999px;white-space:nowrap}
-.dd{background:var(--ink);color:var(--paper);font-size:22px;font-weight:900;padding:8px 16px;border-radius:10px}
+.ddp{margin:22px 0 0;align-self:flex-start;background:var(--cat);color:#fff;
+font-size:26px;font-weight:900;padding:11px 24px;border-radius:999px;white-space:nowrap}
 /* 채널 워터마크 — 왼쪽 위 모서리. 영상(motion.py)과 같은 자리입니다.
    예전에는 분야칩 줄과 제목 사이에 끼어 있어 둘 사이에 묻혔습니다. */
 .brand{position:absolute;top:48px;left:48px;font-size:26px;font-weight:800;
@@ -175,7 +176,10 @@ def build_images(d, base):
     global ACCENT
     ACCENT = d["meta"].get("accent", 0)
     m, items = d["meta"], d["items"]; n = len(items); total = n+2
-    dd = f'<div class="dd">{esc(m["dday"])}</div>' if m.get("dday") else ""
+    # 기한은 상단 줄이 아니라 제목 아래입니다. 영상(motion.py .ddp)과 같은 자리입니다.
+    # 상단 줄에 두면 '분야 | 관통 단어 | 기한' 세 알약이 같은 무게로 늘어서서,
+    # 그 줄이 답해야 하는 두 가지(어느 분야인가·무슨 제도인가)가 묻힙니다.
+    dd = f'<div class="ddp">신청 {esc(m["dday"])}</div>' if m.get("dday") else ""
     # meta.layout 이 포스터 구성을 정합니다.
     # 오랫동안 이 필드는 선언만 되고 아무도 읽지 않았습니다 — 그래서 모든 글의
     # 포스터가 똑같이 나왔고, CLAUDE.md 3장의 '3종 로테이션'은 종이 위에만 있었습니다.
@@ -223,8 +227,8 @@ def build_images(d, base):
     src = " · ".join(_iss)
     poster = page(POST_CSS, m["category"], f'''<div class="brand">{handle("tistory")}</div>
 <div class="wrap">
-<div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}{dd}</div>
-<h1 style="font-size:{az(m["title"],76,0.9,52)}px">{esc(m["title"])}</h1>
+<div class="top"><div class="badge">{m["category"]}</div>{("<div class='through'>"+esc(m["throughline"])+"</div>") if m.get("throughline") else ""}</div>
+<h1 style="font-size:{az(m["title"],76,0.9,52)}px">{esc(m["title"])}</h1>{dd}
 <div class="sub">{esc(m.get("subtitle",d["summary"])[:70])}</div><div class="rule"></div>
 <div class="list">{rows}</div><div class="foot"><div class="src">출처 · {esc(src)} ({m["publish_date"]} 기준)</div>
 <div class="cta">{esc(d.get("cta","저장해두세요"))}</div></div></div>''', 1080, 1350)

@@ -304,6 +304,12 @@ def main(base):
     wants = [i for i, x in enumerate(d.get("flow", {}).get("scenes", [])) if x.get("dday")]
     if wants and not d["meta"].get("dday"):
         E.append(f"flow.scenes{wants} 가 dday 배지를 요청했는데 meta.dday 가 없습니다")
+    # 배지는 제목 아래에 붙습니다 — 그릴 자리가 제목 화면에만 있습니다.
+    # 다른 장면이 요청하면 렌더러가 멈추므로, 발행 전에 여기서 먼저 알려줍니다.
+    late = [i + 1 for i in wants if i > 0]
+    if late:
+        E.append(f"{late} 번째 장면이 dday 를 요청했습니다 — "
+                 "기한 배지는 제목 화면(첫 장면)에만 들어갑니다")
     nocap = [i["label"] for i in d["items"] if not i.get("caption")]
     if nocap:
         W.append(f"caption 없는 항목 {len(nocap)}개 — 영상 자막이 화면 텍스트와 중복됩니다")

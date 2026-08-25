@@ -109,11 +109,18 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .tbl th:first-child{text-align:left}
 .tbl td.same{text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl{font-variant-numeric:tabular-nums}
-/* 기한 배지. 예전에는 절대배치(top:210 right:190)라 관통 단어와 같은 자리를 써서
-   제목 화면에서 관통 단어를 통째로 덮었습니다 — 첫 프레임만 보면 무슨 제도인지
-   알 수 없었습니다. 상단 줄 안에 넣어 나란히 놓습니다. */
-.dd{margin-left:14px;background:var(--cat);color:#fff;
-  font-size:28px;font-weight:900;padding:11px 18px;border-radius:12px;white-space:nowrap}
+/* 기한 배지 — 제목 바로 아래. 제목 화면에만 뜹니다.
+   자리를 세 번 옮겼습니다.
+   (1) 절대배치(top:210 right:190) — 관통 단어와 같은 자리라 통째로 덮었습니다.
+   (2) 상단 줄 안 — 안 겹치긴 했지만 '분야 | 관통 단어 | 기한' 세 알약이
+       같은 무게로 늘어서서, 첫 프레임의 눈이 갈 곳을 잃었습니다.
+       상단 줄이 답해야 하는 것은 '무엇에 대한 영상인가' 두 가지뿐입니다.
+       기한은 정체성이 아니라 사건이라 같은 층에 두면 안 됩니다.
+   (3) 제목 아래 — 제목과 한 문장으로 읽힙니다('...얼마 받나 / 신청 9월 15일까지').
+   상단 줄은 다시 좌=분야, 우=관통 단어 둘로 돌아갑니다. */
+.ddp{margin:38px auto 0;background:var(--cat);color:#fff;
+  font-size:34px;font-weight:900;padding:14px 30px;border-radius:999px;
+  white-space:nowrap}
 /* 자막·출처·진행바도 좌우를 같게 둡니다. 본문만 가운데로 맞추고
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
 .cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
@@ -226,8 +233,8 @@ def handle_for(key=None):
 HANDLE = handle_for()
 
 
-def top_bar(m, dd=""):
-    """좌측 = 분야, 우측 = 관통 단어 (+ 기한 배지).
+def top_bar(m):
+    """좌측 = 분야, 우측 = 관통 단어. 딱 두 가지입니다.
 
     관통 단어는 '공단에 전화해서 말해야 하는 단어' 입니다.
     분야만 있으면 무슨 얘긴지 모르고, 관통 단어만 있으면 어느 제도인지 모릅니다.
@@ -237,14 +244,15 @@ def top_bar(m, dd=""):
     어느 프레임이 걸려도 이 단어 하나로 무슨 제도인지 알 수 있어야 합니다.
     그래서 절차 이름('반기신청')이 아니라 제도 이름('근로장려금')을 씁니다.
 
-    기한 배지는 여기 안에 넣습니다 — 밖에서 절대배치했더니 관통 단어를 덮었습니다.
+    기한 배지는 여기 두지 않습니다. 한동안 이 줄 안에 넣었는데,
+    알약 세 개가 같은 무게로 늘어서면서 첫 프레임이 무엇을 말하려는지 흐려졌습니다.
+    기한은 제목 아래(.ddp)로 내렸습니다 — 제목과 한 문장으로 읽힙니다.
     """
     cat = esc(m["category"])
     th = m.get("throughline")
     return (f'<div class="brand">{HANDLE}</div>'
             + f'<div class="top"><div class="badge">{cat}</div>'
             + (f'<div class="through">{esc(th)}</div>' if th else "")
-            + dd
             + '</div>')
 
 
@@ -273,9 +281,10 @@ def page(cat, inner, script):
 
 def scene_title(m, hook, dd):
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
+  {dd}
 </div></div><div class="cap" id="c">{esc(hook)}</div>
 <!--BOT-->'''
     js = '''window.draw=(t)=>{
@@ -285,10 +294,10 @@ def scene_title(m, hook, dd):
     return page(m["category"], inner, js), 1.6, 3.0
 
 
-def scene_value(m, it, pg, ratio, dd):
+def scene_value(m, it, pg, ratio):
     num, unit = parse_amount(it["value"])
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(58, 100 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="big" id="n">0</div>
@@ -305,12 +314,12 @@ def scene_value(m, it, pg, ratio, dd):
     return page(m["category"], inner, js), 2.0, 3.9
 
 
-def scene_compare(m, it, pg, base_num, dd):
+def scene_compare(m, it, pg, base_num):
     """같은 항목의 두 값을 나란히 — 깎이기 전과 깎인 뒤."""
     num, unit = parse_amount(it["value"])
     gross = base_num if base_num else (num * 2 if num else 0)
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(56, 96 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="cmp">
@@ -340,10 +349,10 @@ def scene_compare(m, it, pg, base_num, dd):
     return page(m["category"], inner, js), 2.4, 3.6
 
 
-def scene_step(m, it, pg, no, dd):
+def scene_step(m, it, pg, no):
     tx = (it.get("caption") or it["detail"])[:70]
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="stepno" id="s">{no}</div>
   <div class="steptx" id="l">{esc(it["label"])}</div>
@@ -377,11 +386,11 @@ def points_block(sc):
         for k, v in ps) + '</div>')
 
 
-def scene_fact(m, sc, dd):
+def scene_fact(m, sc):
     """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
     pts = points_block(sc)
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
   <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
@@ -403,14 +412,14 @@ def scene_fact(m, sc, dd):
     return page(m["category"], inner, js), 2.2, 3.9
 
 
-def scene_list(m, sc, dd):
+def scene_list(m, sc):
     """항목이 하나씩 등장 — 신청 방법처럼 '그래서 뭘 하나'에 답하는 장면."""
     lis = "".join(f'<div class="li" style="opacity:0"><span class="dot"></span>'
                   f'<span>{esc(x)}</span></div>' for x in sc["items"])
     nk = " warn" if sc.get("note_kind") == "warn" else ""
     note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
@@ -427,7 +436,7 @@ def scene_list(m, sc, dd):
     return page(m["category"], inner, js), 0.55 * len(sc["items"]) + 1.5, 3.0
 
 
-def scene_compare2(m, sc, dd):
+def scene_compare2(m, sc):
     """두 값을 나란히. 라벨을 데이터에서 그대로 받습니다.
 
     이전 버전은 '깎기 전 / 실제 내는 금액' 이라고만 썼는데,
@@ -437,7 +446,7 @@ def scene_compare2(m, sc, dd):
     nb, ub = parse_amount(b["value"])
     na, ua = parse_amount(a["value"])
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div class="cmp">
@@ -467,7 +476,7 @@ def scene_compare2(m, sc, dd):
     return page(m["category"], inner, js), 2.5, 3.4
 
 
-def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다.", sc=None):
+def scene_table(m, items, cap="지금 캡처해두세요. 신청할 때 다시 필요합니다.", sc=None):
     cols = (sc or {}).get("columns")
     if sc and sc.get("rows"):
         # 명시된 행을 그대로 그립니다 (열 추측 금지)
@@ -491,7 +500,7 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     note = (f'<div class="note" id="tn">{esc(sc["note"])}</div>'
             if sc and sc.get("note") else "")
     inner = f'''<div class="wrap">
-{top_bar(m, dd)}<!--PRG-->
+{top_bar(m)}<!--PRG-->
 <div class="body"><table class="tbl">{rows}</table>{note}</div>
 </div><div class="cap" id="c">{esc(cap)}</div>
 <!--BOT-->'''
@@ -514,10 +523,20 @@ LEAD_IN = 4.2
 def build_scenes(d):
     m, items = d["meta"], d["items"]
     def dday_for(sc=None):
-        """기한 배지는 장면이 dday:true 로 요청할 때만 뜹니다.
+        """기한 배지는 제목 화면에만, 그리고 장면이 dday:true 로 요청할 때만 뜹니다.
         모든 장면에 띄우면 세 번째 장면부터는 아무도 읽지 않습니다."""
         txt = m.get("dday")
-        return f'<div class="dd">{esc(txt)}</div>' if (txt and sc and sc.get("dday")) else ""
+        return (f'<div class="ddp">신청 {esc(txt)}</div>'
+                if (txt and sc and sc.get("dday")) else "")
+
+    # 기한을 제목 아래에 두면서, 제목 화면이 아닌 장면은 그릴 자리가 없어졌습니다.
+    # 선언만 되고 아무도 읽지 않는 필드를 다시 만들지 않으려고 여기서 막습니다.
+    _late = [i + 1 for i, sc in enumerate(d.get("flow", {}).get("scenes", [])[1:], start=1)
+             if sc.get("dday")]
+    if _late:
+        raise SystemExit(f"{_late} 번째 장면이 dday 를 요청했습니다 — "
+                         "기한 배지는 제목 화면(첫 장면)에만 들어갑니다. "
+                         "그 장면에서는 screen/note 에 날짜를 글로 쓰세요.")
     dd = ""
     struct = m.get("video_structure", "countdown")
 
@@ -533,13 +552,13 @@ def build_scenes(d):
                     hold += LEAD_IN     # 도입부 대사가 나갈 동안 제목을 붙잡습니다
                 S.append((page, anim, hold))
             elif ty == "fact":
-                S.append(scene_fact(m, sc, dday_for(sc)))
+                S.append(scene_fact(m, sc))
             elif ty == "compare":
-                S.append(scene_compare2(m, sc, dday_for(sc)))
+                S.append(scene_compare2(m, sc))
             elif ty == "list":
-                S.append(scene_list(m, sc, dday_for(sc)))
+                S.append(scene_list(m, sc))
             elif ty == "table":
-                S.append(scene_table(m, items, dday_for(sc), sc["screen"], sc))
+                S.append(scene_table(m, items, sc["screen"], sc))
             else:
                 raise ValueError(f"모르는 장면 유형: {ty}")
         return S
@@ -553,12 +572,12 @@ def build_scenes(d):
             # detail 안의 "A × B% = C" 에서 깎기 전 금액을 읽습니다.
             mm = re.search(r"=\s*([\d,]+)", it.get("detail", ""))
             gross = int(mm.group(1).replace(",", "")) if mm else n * 2
-            S.append(scene_compare(m, it, it.get("rank", idx + 1), gross, dd))
+            S.append(scene_compare(m, it, it.get("rank", idx + 1), gross))
         elif struct == "step":
-            S.append(scene_step(m, it, it.get("rank", idx + 1), idx + 1, dd))
+            S.append(scene_step(m, it, it.get("rank", idx + 1), idx + 1))
         else:
-            S.append(scene_value(m, it, it.get("rank", idx + 1), n / mx, dd))
-    S.append(scene_table(m, items, dd))
+            S.append(scene_value(m, it, it.get("rank", idx + 1), n / mx))
+    S.append(scene_table(m, items))
     return S
 
 
@@ -592,13 +611,12 @@ FIT_JS = """() => {
     bad.push(`본문이 진행바를 ${(prog.bottom + 8 - top).toFixed(0)}px 침범`);
   }
 
-  // 관통 단어와 기한 배지가 겹치는지. 예전에 배지가 단어를 통째로 덮었습니다.
-  const th = R(document.querySelector('.through'));
-  const dd = R(document.querySelector('.dd'));
-  if (th && dd && th.width > 1 && dd.width > 1) {
-    const hit = th.left < dd.right && th.right > dd.left
-             && th.top < dd.bottom && th.bottom > dd.top;
-    if (hit) bad.push('기한 배지가 관통 단어를 덮습니다');
+  // 기한 배지는 제목 아래에 있습니다. 제목이 길어지면 자막 쪽으로 내려앉습니다.
+  // (상단 줄에 있던 시절에는 관통 단어를 통째로 덮은 적이 있어 여기서 잡았습니다.)
+  const dd = R(document.querySelector('.ddp'));
+  const cap0 = R(document.querySelector('.cap'));
+  if (dd && cap0 && dd.width > 1 && dd.bottom > cap0.top - 8) {
+    bad.push(`기한 배지가 자막을 ${(dd.bottom - cap0.top + 8).toFixed(0)}px 침범`);
   }
 
   // 채널명은 왼쪽 위 모서리 워터마크. 화면 밖으로 나가거나 아래 줄에 붙으면 안 됩니다.
