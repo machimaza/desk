@@ -16,9 +16,6 @@ T = """:root{--ink:#16202E;--ink-soft:#4A5666;--paper:#FBF8F3;--paper-2:#F2ECE1;
 body{font-family:var(--font);background:var(--paper);color:var(--ink)}
 """
 
-AXES = {"소득구간","연령대","가구형태","지역","직업형태","생활패턴"}
-BANNED = {"자산순위","자산 순위","질병위험도","질병 위험도","외모","체형"}
-DISC = {"health":"증상이 지속되거나 우려된다면 의료진과 상담","money":"투자 권유가 아닙니다"}
 CATS = json.loads((pathlib.Path(__file__).resolve().parent.parent /
                    "categories.json").read_text(encoding="utf-8"))["카테고리"]
 
@@ -41,20 +38,9 @@ def cat_color(name, accent=0):
 
 # 지금 글의 강조색 번호. build_images() 가 data.json 에서 읽어 세웁니다.
 ACCENT = 0
-_D = r"(암|당뇨|고혈압|혈압|혈당|아토피|치매|관절염|골다공증|비염|위염|간염|통풍|불면증|우울증|탈모|디스크|염증|콜레스테롤)"
-_E = r"(치료|완치|낫는|낫습|효능|예방|개선|회복|잡아|없애|제거|낮춰|줄여)"
-FAIL_PAT = {"과장 후킹":r"충격|이것만 알면|99%가 모르는|반드시 알아야|절대 놓치",
-            "단정 표현":r"100% 보장|무조건 (되|받|낫)|확실히 (낫|오릅)",
-            # 식품표시광고법 제8조 (10년 이하/1억)
-            "질병+효능 조합":_D+r"[^.。\n]{0,20}"+_E,
-            "기능성 표방":r"항암|면역력\s*(강화|증진)|염증\s*(제거|완화)|디톡스|해독\s*작용",
-            "의약품 오인":r"복용|약\s*대신",
-            "부작용 부인":r"부작용\s*(이\s*)?없|100%\s*안전",
-            # 의료법 제56조①·제27조③
-            "의료광고·유인":r"(병원|의원|클리닉|한의원)\s*(예약|할인|링크|추천)|전후\s*사진|시술\s*후기",
-            # 자본시장법·금소법
-            "투자 권유":r"매수하세요|매도하세요|추천\s*종목|지금\s*사세요|목표가",
-            "수익 보장":r"원금\s*보장|확정\s*수익|손실\s*없|수익률\s*보장"}
+
+# 톤·금칙 패턴은 여기 없습니다 — `lint_tone.py` 가 유일한 출처입니다.
+# 위에서 지운 두 번째 게이트가 쓰던 복사본(FAIL_PAT·BANNED·AXES)이 남아 있었습니다.
 def esc(s): return H.escape(str(s))
 def az(t,b,p,f): return max(f,int(b-len(t)*p))
 
@@ -140,7 +126,7 @@ font-weight:800;color:var(--ink-soft);text-align:right}
 .ptbl td{padding:18px 12px;border-bottom:2px solid var(--line);font-weight:800}
 .ptbl td.c1{text-align:right;color:var(--ink-soft)}
 .ptbl td.c2{text-align:right;color:var(--cat);font-weight:900}
-.cmpr{margin-bottom:26px}
+.cmpr{flex:1;display:flex;flex-direction:column;justify-content:center;margin-bottom:26px}
 .cmpr .cl{font-size:32px;font-weight:800;color:var(--ink-soft);margin-bottom:6px}
 .cmpr .cv{font-size:48px;font-weight:900;color:var(--cat);margin-bottom:10px}
 .cmpr .cb{height:16px;background:var(--line);border-radius:999px;overflow:hidden}
@@ -207,11 +193,19 @@ def build_images(d, base):
                if two else f'<td class="c2">{esc(it["value"])}</td>')
             + '</tr>' for it in items) + '</table>'
     elif lay == "compare":
-        mx = max((len(re.sub(r"[^\d]", "", it["value"])) or 1) for it in items)
+        # 막대 길이는 금액의 비율입니다.
+        # 예전에는 여기서 len(문자열)을 비교했습니다 — 게다가 두 곳의 정규식이
+        # 서로 달라서("[^\d]" 와 "^\d") 어떤 값을 넣어도 전부 100% 가 나왔습니다.
+        # compare 레이아웃을 처음 쓰는 글에서야 드러났습니다.
+        # 막대가 다 같으면 이 레이아웃을 고른 이유가 사라집니다.
+        def _amt(v):
+            s = re.sub(r"[^\d]", "", v)
+            return int(s) if s else 0
+        mx = max((_amt(it["value"]) for it in items), default=0) or 1
         rows = "".join(
             f'<div class="cmpr"><div class="cl">{esc(it["label"])}</div>'
             f'<div class="cv">{esc(it["value"])}</div>'
-            f'<div class="cb"><i style="width:{min(100, len(re.sub(chr(94)+chr(92)+"d","",it["value"]))/mx*100):.0f}%"></i></div></div>'
+            f'<div class="cb"><i style="width:{min(100, _amt(it["value"]) / mx * 100):.0f}%"></i></div></div>'
             for it in items)
     else:
         rows = "".join(f'<div class="row" style="padding:{pad}px 26px;margin-bottom:{gap}px">'
@@ -354,57 +348,18 @@ def build_video(d, base, target=None):
     return out
 
 
-def verify(d, base):
-    E, W = [], []
-    today = dt.date.today()
-    sids = {s["id"] for s in d["sources"]}
-    for it in d["items"]:
-        if it["source_id"] not in sids: E.append(f"'{it['label']}' 출처 미연결")
-    ax = d["meta"].get("axis")
-    if not ax: W.append("axis 없음")
-    elif ax.get("type") in BANNED: E.append(f"금지 축 '{ax['type']}'")
-    elif ax.get("type") not in AXES: E.append(f"허용 안 된 축 '{ax.get('type')}'")
-    for s in d["sources"]:
-        if s.get("tier",4) >= 4: E.append(f"{s['id']} tier 4 (사용 불가)")
-        u = s.get("url","")
-        if not re.match(r"^https?://", u): E.append(f"{s['id']} 링크 없음")
-        elif s.get("tier",4) <= 2 and not re.search(r"\.(go|or|re)\.kr", u):
-            E.append(f"{s['id']} tier{s['tier']} 인데 공공 도메인 아님: {u}")
-        try:
-            if (today - dt.date.fromisoformat(s["effective_date"])).days > 730:
-                W.append(f"{s['id']} 시행일 2년 초과")
-        except Exception: W.append(f"{s['id']} 시행일 형식 오류")
-    key = CAT2KEY[d["meta"]["category"]]
-    b = base/"blog.md"
-    if not b.exists(): E.append("blog.md 없음")
-    else:
-        t = b.read_text(encoding="utf-8")
-        if key != "none" and DISC[key] not in t: E.append("고지 문구 누락")
-        if not re.search(r"^\|.+\|\s*$", t, re.M): E.append("텍스트 표 없음")
-        n_img = len(re.findall(r"!\[[^\]]*\]\([^)]+\)", t))
-        if n_img < 5: E.append(f"블로그 본문 이미지 {n_img}장 (5장 이상 필요)")
-        if "마치마자 ·" not in t: W.append("저자 서명 없음 (E-E-A-T 신호)")
-        if len(t) < 4000: W.append(f"본문 {len(t)}자 — 목표 8,000자 미달")
-        if t.count("\n## ") < 5: W.append(f"H2 {t.count(chr(10)+'## ')}개 — 목표 7~9개")
-        for nm,p in FAIL_PAT.items():
-            if re.search(p,t): E.append(f"톤 위반({nm})")
-    v = base/"video.mp4"
-    if v.exists():
-        a = subprocess.run(["ffprobe","-v","error","-select_streams","a","-show_entries",
-            "stream=codec_name","-of","csv=p=0",str(v)],capture_output=True,text=True).stdout.strip()
-        if not a: E.append("오디오 스트림 없음")
-        dur = float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
-            "-of","default=nw=1:nk=1",str(v)],capture_output=True,text=True).stdout.strip())
-        if not 60 <= dur <= 90: E.append(f"영상 {dur:.1f}초 (60~90 아님)")
-    else: E.append("video.mp4 없음")
-    if not d["meta"].get("dday"): W.append("dday 없음")
-    for x in W: print("  ⚠", x)
-    for x in E: print("  ✗", x)
-    print(("🟢 게이트 통과 — 발행 가능" if not E else "🔴 발행 불가"))
-    return 1 if E else 0
+# 게이트는 여기 없습니다 — `verify.py` 가 유일한 검수 게이트입니다.
+#
+# 예전에 이 자리에 verify() 라는 두 번째 게이트가 있었습니다. verify.py 와
+# 같은 항목(고지문구·텍스트 표·이미지 수·본문 길이·H2·톤)을 각자 검사했고,
+# 그 중 하나(CAT2KEY)는 아예 정의되지 않아 실행하면 NameError 로 죽었습니다.
+# 아무도 안 돌려서 아무도 몰랐습니다. 게이트가 둘이면 어느 쪽이 진짜인지
+# 알 수 없고, 죽은 쪽은 조용히 썩습니다. 하나만 둡니다.
+
 
 if __name__ == "__main__":
     base = pathlib.Path(sys.argv[1])
     d = json.loads((base/"data.json").read_text(encoding="utf-8"))
-    build_images(d, base); build_video(d, base)
-    sys.exit(verify(d, base))
+    build_images(d, base)
+    build_video(d, base)
+    print("\n검수는 게이트가 합니다:  python3 scripts/verify.py " + str(base))

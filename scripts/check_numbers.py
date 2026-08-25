@@ -238,7 +238,11 @@ def check(base):
             if side in sc:
                 v = _num(re.sub(r"[^\d,]", "", sc[side]["value"]))
                 known.add(v)
-        if "before" in sc and "after" in sc and "경감률" in ik:
+        # 이 검산은 임의계속 글에만 해당합니다. 경감률 50% 를 모든 compare 장면에
+        # 들이대면, 다른 제도의 before/after(예: 근로장려금 만점 구간)를 틀렸다고
+        # 잡습니다. 임의계속 글은 items 에 wage 를 답니다 — 그걸 신호로 씁니다.
+        if ("before" in sc and "after" in sc and "경감률" in ik
+                and any(x.get("wage") for x in d["items"])):
             nb = _num(re.sub(r"[^\d,]", "", sc["before"]["value"]))
             na = _num(re.sub(r"[^\d,]", "", sc["after"]["value"]))
             want = int(nb * ik["경감률"] // 10 * 10)
