@@ -48,7 +48,10 @@ def silence(path, seconds=0.7):
 
 
 def concat(parts, out):
-    lst = out.parent / (out.stem + ".txt")
+    # 목록 파일은 조각들과 같은 폴더에 둡니다.
+    # ffmpeg 은 목록 안의 상대 경로를 "목록 파일이 있는 곳" 기준으로 찾습니다.
+    # 다른 폴더에 두면 조각을 못 찾고 "No such file or directory" 로 죽습니다.
+    lst = parts[0].parent / (out.stem + ".txt")
     lst.write_text("".join(f"file '{p.name}'\n" for p in parts), encoding="utf-8")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat",
                     "-safe", "0", "-i", str(lst), "-c", "copy", str(out)], check=True)
