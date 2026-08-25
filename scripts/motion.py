@@ -545,7 +545,27 @@ def render(d, base, keep_frames=False):
     (base / "video.srt").write_text(
         "".join(f"{i+1}\n{ts(a)} --> {ts(b_)}\n{tx}\n\n"
                 for i, (a, b_, tx) in enumerate(srt_rows)), encoding="utf-8")
+    stamp(base, "video")
     return out, t_abs, bool(narr)
+
+
+def stamp(base, kind):
+    """산출물이 어느 data.json 에서 나왔는지 남깁니다.
+
+    렌더는 사람이 손으로 돌립니다. data.json 을 고치고 렌더를 잊으면
+    옛 산출물이 그대로 남고, 게이트는 그걸 최신인 줄 알고 읽습니다.
+    실제로 환급금 영상이 옛 흐름 그대로 32.5초로 남아 있었고,
+    게이트는 "40초 미만"이라며 엉뚱한 곳을 가리켰습니다.
+
+    mtime 은 클론하면 전부 같아져서 못 씁니다. 내용 해시를 씁니다.
+    """
+    import hashlib, json, pathlib
+    base = pathlib.Path(base)
+    raw = (base / "data.json").read_bytes()
+    f = base / ".render.json"
+    cur = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    cur[kind] = hashlib.sha1(raw).hexdigest()
+    f.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def main(argv):
