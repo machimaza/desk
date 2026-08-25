@@ -109,8 +109,11 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .tbl th:first-child{text-align:left}
 .tbl td.same{text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl{font-variant-numeric:tabular-nums}
-.dd{position:absolute;top:210px;right:190px;background:var(--ink);color:var(--paper);
-  font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
+/* 기한 배지. 예전에는 절대배치(top:210 right:190)라 관통 단어와 같은 자리를 써서
+   제목 화면에서 관통 단어를 통째로 덮었습니다 — 첫 프레임만 보면 무슨 제도인지
+   알 수 없었습니다. 상단 줄 안에 넣어 나란히 놓습니다. */
+.dd{margin-left:14px;background:var(--cat);color:#fff;
+  font-size:28px;font-weight:900;padding:11px 18px;border-radius:12px;white-space:nowrap}
 /* 자막·출처·진행바도 좌우를 같게 둡니다. 본문만 가운데로 맞추고
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
 .cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
@@ -223,17 +226,25 @@ def handle_for(key=None):
 HANDLE = handle_for()
 
 
-def top_bar(m):
-    """좌측 = 분야, 우측 = 관통 단어.
+def top_bar(m, dd=""):
+    """좌측 = 분야, 우측 = 관통 단어 (+ 기한 배지).
 
     관통 단어는 '공단에 전화해서 말해야 하는 단어' 입니다.
     분야만 있으면 무슨 얘긴지 모르고, 관통 단어만 있으면 어느 제도인지 모릅니다.
+
+    **관통 단어는 모든 화면에 남는 유일한 주제어입니다.**
+    쇼츠 썸네일은 유튜브가 아무 프레임이나 고르고 나중에 바꿀 수도 없어서(§10),
+    어느 프레임이 걸려도 이 단어 하나로 무슨 제도인지 알 수 있어야 합니다.
+    그래서 절차 이름('반기신청')이 아니라 제도 이름('근로장려금')을 씁니다.
+
+    기한 배지는 여기 안에 넣습니다 — 밖에서 절대배치했더니 관통 단어를 덮었습니다.
     """
     cat = esc(m["category"])
     th = m.get("throughline")
     return (f'<div class="brand">{HANDLE}</div>'
             + f'<div class="top"><div class="badge">{cat}</div>'
             + (f'<div class="through">{esc(th)}</div>' if th else "")
+            + dd
             + '</div>')
 
 
@@ -262,10 +273,10 @@ def page(cat, inner, script):
 
 def scene_title(m, hook, dd):
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
-</div></div>{dd}<div class="cap" id="c">{esc(hook)}</div>
+</div></div><div class="cap" id="c">{esc(hook)}</div>
 <!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('h'), easeOut(seg(t,0.05,0.7)));
@@ -277,12 +288,12 @@ def scene_title(m, hook, dd):
 def scene_value(m, it, pg, ratio, dd):
     num, unit = parse_amount(it["value"])
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(58, 100 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="big" id="n">0</div>
   <div class="bar"><div class="fill" id="b" style="width:0%"></div></div>
-</div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
+</div></div><div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
 <!--BOT-->'''
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -299,7 +310,7 @@ def scene_compare(m, it, pg, base_num, dd):
     num, unit = parse_amount(it["value"])
     gross = base_num if base_num else (num * 2 if num else 0)
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:{max(56, 96 - len(it["label"]) * 2)}px">{esc(it["label"])}</div>
   <div class="cmp">
@@ -314,7 +325,7 @@ def scene_compare(m, it, pg, base_num, dd):
       <div class="bar"><div class="fill" id="b2" style="width:0%"></div></div>
     </div>
   </div>
-</div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
+</div></div><div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
 <!--BOT-->'''
     ratio2 = (num / gross) if gross else 1.0
     js = f'''window.draw=(t)=>{{
@@ -332,12 +343,12 @@ def scene_compare(m, it, pg, base_num, dd):
 def scene_step(m, it, pg, no, dd):
     tx = (it.get("caption") or it["detail"])[:70]
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="stepno" id="s">{no}</div>
   <div class="steptx" id="l">{esc(it["label"])}</div>
   <div class="big" id="n" style="font-size:96px">0</div>
-</div></div>{dd}<div class="cap" id="c">{esc(tx)}</div>
+</div></div><div class="cap" id="c">{esc(tx)}</div>
 <!--BOT-->'''
     num, unit = parse_amount(it["value"])
     js = f'''window.draw=(t)=>{{
@@ -370,13 +381,13 @@ def scene_fact(m, sc, dd):
     """하나의 사실만 크게 — 자격·기한처럼 숫자가 아닌 핵심."""
     pts = points_block(sc)
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:56px;color:var(--ink-soft)">{esc(sc["label"])}</div>
   <div class="big" id="b" style="font-size:{max(84, 150 - len(sc["big"]) * 6)}px">{esc(sc["big"])}</div>
   <div class="sub" id="s">{esc(sc.get("sub",""))}</div>
   {pts}
-</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+</div></div><div class="cap" id="c">{esc(sc["screen"])}</div>
 <!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -399,11 +410,11 @@ def scene_list(m, sc, dd):
     nk = " warn" if sc.get("note_kind") == "warn" else ""
     note = f'<div class="note{nk}" id="n">{esc(sc["note"])}</div>' if sc.get("note") else ""
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
-</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+</div></div><div class="cap" id="c">{esc(sc["screen"])}</div>
 <!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -426,7 +437,7 @@ def scene_compare2(m, sc, dd):
     nb, ub = parse_amount(b["value"])
     na, ua = parse_amount(a["value"])
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body">
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div class="cmp">
@@ -441,7 +452,7 @@ def scene_compare2(m, sc, dd):
       <div class="bar"><div class="fill" id="b2" style="width:0%"></div></div>
     </div>
   </div>
-</div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
+</div></div><div class="cap" id="c">{esc(sc["screen"])}</div>
 <!--BOT-->'''
     ratio = (na / nb) if nb else 1.0
     js = f'''window.draw=(t)=>{{
@@ -480,9 +491,9 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
     note = (f'<div class="note" id="tn">{esc(sc["note"])}</div>'
             if sc and sc.get("note") else "")
     inner = f'''<div class="wrap">
-{top_bar(m)}<!--PRG-->
+{top_bar(m, dd)}<!--PRG-->
 <div class="body"><table class="tbl">{rows}</table>{note}</div>
-</div>{dd}<div class="cap" id="c">{esc(cap)}</div>
+</div><div class="cap" id="c">{esc(cap)}</div>
 <!--BOT-->'''
     js = '''window.draw=(t)=>{
   const rs = document.querySelectorAll('.r');
@@ -579,6 +590,15 @@ FIT_JS = """() => {
   const prog = R(document.querySelector('.prog'));
   if (prog && top < prog.bottom + 8) {
     bad.push(`본문이 진행바를 ${(prog.bottom + 8 - top).toFixed(0)}px 침범`);
+  }
+
+  // 관통 단어와 기한 배지가 겹치는지. 예전에 배지가 단어를 통째로 덮었습니다.
+  const th = R(document.querySelector('.through'));
+  const dd = R(document.querySelector('.dd'));
+  if (th && dd && th.width > 1 && dd.width > 1) {
+    const hit = th.left < dd.right && th.right > dd.left
+             && th.top < dd.bottom && th.bottom > dd.top;
+    if (hit) bad.push('기한 배지가 관통 단어를 덮습니다');
   }
 
   // 채널명은 왼쪽 위 모서리 워터마크. 화면 밖으로 나가거나 아래 줄에 붙으면 안 됩니다.
