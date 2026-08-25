@@ -534,6 +534,15 @@ def render(d, base, keep_frames=False):
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(silent),
                         "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "64k", str(out)], check=True)
+    # -shortest 는 짧은 쪽에 맞춰 자릅니다. 나레이션이 설계보다 짧으면
+    # 영상이 통째로 잘린 채 조용히 넘어갑니다. 실제로 그런 적이 있습니다.
+    made = float(subprocess.run(["ffmpeg" and "ffprobe", "-v", "error", "-show_entries",
+                                 "format=duration", "-of", "csv=p=0", str(out)],
+                                capture_output=True, text=True).stdout.strip() or 0)
+    if abs(made - t_abs) > 1.0:
+        raise SystemExit(f"영상 길이가 설계와 다릅니다 — 설계 {t_abs:.1f}초 / 실제 {made:.1f}초\n"
+                         f"  나레이션이 짧아 -shortest 로 잘렸을 수 있습니다")
+
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(out), "-vframes", "1",
                     str(base / "cover.png")], check=True)
 
