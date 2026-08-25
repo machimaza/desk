@@ -11,7 +11,8 @@ narrate.yml 은 이 파일을 한 줄로 부르기만 합니다 — 반복문을
 
 낱개 파일을 스무 개 넘게 듣는 건 고역이라, 번호를 말해주는 합본도 함께 만듭니다.
 
-  python scripts/voice_samples.py --mode all
+  python scripts/voice_samples.py --mode korean --engine azure
+  python scripts/voice_samples.py --mode variants --voice ko-KR-SeoHyeonNeural
 """
 import argparse
 import pathlib
@@ -65,7 +66,7 @@ def concat(parts, out):
     lst.unlink()
 
 
-def build(out, want):
+def build(out, want, pick=None):
     out.mkdir(parents=True, exist_ok=True)
     tmp = out / "_tmp"
     tmp.mkdir(exist_ok=True)
@@ -77,13 +78,19 @@ def build(out, want):
         avail = set(KO)
 
     # 후보 모으기 ------------------------------------------------------
-    korean, multi = [], []
-    for v in KO:
-        if v in avail:
-            korean.append((v, "+0%", "+0Hz", "원본"))
-    for v, _, _, _ in list(korean):
+    # 고르는 순서가 두 단계라 묶음도 두 갈래입니다.
+    #   korean   목소리를 먼저 고릅니다 — 원본만, 한 명당 하나
+    #   variants 고른 목소리의 빠르기·높낮이를 맞춥니다
+    # 처음부터 둘을 곱하면 azure 에서 서른 개가 나옵니다. 아무도 못 듣습니다.
+    korean = [(v, "+0%", "+0Hz", "원본") for v in KO if v in avail]
+
+    variants = []
+    if pick:
+        if pick not in avail:
+            print(f"[경고] {pick} 을(를) 이 엔진에서 찾지 못했습니다")
+        variants.append((pick, "+0%", "+0Hz", "원본"))
         for rate, pitch, label in VARIANTS:
-            korean.append((v, rate, pitch, label))
+            variants.append((pick, rate, pitch, label))
 
     found = sorted(n for n in avail
                    if n.endswith("MultilingualNeural") and not n.startswith("ko-"))
@@ -98,6 +105,8 @@ def build(out, want):
         groups.append(("A-한국어", korean))
     if want in ("all", "multilingual"):
         groups.append(("B-다국어", multi))
+    if want == "variants":
+        groups.append(("C-변형", variants))
 
     # 만들기 -----------------------------------------------------------
     index = []
@@ -137,13 +146,14 @@ def build(out, want):
 def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", default="all",
-                    choices=["all", "korean", "multilingual"])
+                    choices=["all", "korean", "multilingual", "variants"])
+    ap.add_argument("--voice", default="", help="variants 일 때 맞출 목소리")
     ap.add_argument("--out", default="samples")
     ap.add_argument("--engine", default="edge", choices=["edge", "azure"])
     a = ap.parse_args(argv[1:])
     global ENGINE
     ENGINE = a.engine
-    build(pathlib.Path(a.out), a.mode)
+    build(pathlib.Path(a.out), a.mode, a.voice or None)
     return 0
 
 
