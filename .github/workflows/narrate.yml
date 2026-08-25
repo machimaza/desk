@@ -28,6 +28,11 @@ on:
         type: choice
         options: [all, korean, multilingual]
         default: all
+      engine:
+        description: '음성 엔진 — azure 는 키가 있어야 합니다'
+        type: choice
+        options: [edge, azure]
+        default: edge
 
 jobs:
   narrate:
@@ -42,6 +47,9 @@ jobs:
       RATE: ${{ inputs.rate }}
       PITCH: ${{ inputs.pitch }}
       SAMPLES: ${{ inputs.samples }}
+      ENGINE: ${{ inputs.engine }}
+      AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+      AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
 
     steps:
       - uses: actions/checkout@v4
@@ -66,13 +74,13 @@ jobs:
       - name: 한국어 음성 목록
         run: |
           set -euo pipefail
-          python -m edge_tts --list-voices | grep -i '^Name: ko-' || true
+          python scripts/build_voice.py . --engine "$ENGINE" --list || true
 
       - name: 샘플 만들기
         if: inputs.mode == 'samples'
         run: |
           set -euo pipefail
-          python scripts/voice_samples.py --mode "$SAMPLES"
+          python scripts/voice_samples.py --mode "$SAMPLES" --engine "$ENGINE"
           ls -la samples/
           cat samples/목록.txt
 
@@ -81,7 +89,8 @@ jobs:
         run: |
           set -euo pipefail
           test -f "$CONTENT/data.json"
-          python scripts/build_voice.py "$CONTENT" --voice "$VOICE" --rate "$RATE" --pitch "$PITCH"
+          python scripts/build_voice.py "$CONTENT" --voice "$VOICE" \
+            --rate "$RATE" --pitch "$PITCH" --engine "$ENGINE"
           python scripts/motion.py "$CONTENT"
           python scripts/make_images.py "$CONTENT"
           ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$CONTENT/video.mp4"
