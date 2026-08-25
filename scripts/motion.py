@@ -53,7 +53,7 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 /* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
 .badge{border:3px solid var(--cat);color:var(--cat);background:transparent;
   font-size:32px;font-weight:800;padding:11px 26px;border-radius:999px}
-.through{margin-left:auto;background:var(--ink);color:var(--paper);
+.through{background:var(--ink);color:var(--paper);
   font-size:32px;font-weight:900;padding:13px 28px;border-radius:999px;
   white-space:nowrap}
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
@@ -88,8 +88,10 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
   margin-bottom:26px;word-break:keep-all;justify-content:flex-start}
 .li .dot{width:18px;height:18px;border-radius:999px;background:var(--cat);flex:none}
 /* 메모는 세로선을 떼고 가운데로. 선이 있으면 가운데 정렬이 어색합니다. */
-.note{margin-top:28px;font-size:40px;font-weight:800;color:var(--ink-soft);
-  padding:14px 20px 0;word-break:keep-all;text-align:center;
+/* 각주입니다. 40px 굵은 회색은 본문만큼 무거웠고, 세 줄이 되면
+   본문 상자를 넘쳐 출처줄 위로 내려앉았습니다. */
+.note{margin-top:20px;font-size:36px;font-weight:700;color:var(--ink-soft);
+  padding:12px 20px 0;word-break:keep-all;text-align:center;line-height:1.35;
   border-top:2px solid var(--line)}
 .note.warn{color:#A03A28;border-top-color:#A03A28}
 .stepno{width:104px;height:104px;border-radius:999px;background:var(--cat);color:#fff;
@@ -111,8 +113,15 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
    이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
 .cap{position:absolute;left:190px;right:190px;bottom:460px;font-size:46px;font-weight:800;
   line-height:1.35;word-break:keep-all;text-align:center}
-.brand{position:absolute;left:190px;right:190px;bottom:625px;font-size:26px;
-  font-weight:800;color:var(--ink-soft);text-align:center}
+/* 채널명은 상단 줄 한가운데. 예전에는 바닥에 있었는데,
+   본문이 길어지면 그 위로 글이 내려앉아 겹쳤습니다 — 실제로 그랬습니다.
+
+   화면 정중앙(x=540)에 절대배치하는 것이 첫 시도였지만 부딪힙니다.
+   왼쪽 분야칩과 오른쪽 관통 단어는 길이가 다르고, 관통 단어가 더 깁니다.
+   그래서 '두 칩 사이의 한가운데'와 '화면 한가운데'가 어긋납니다.
+   플렉스 항목으로 두면 남는 자리를 채널명이 가져가므로 절대 겹치지 않습니다. */
+.brand{flex:1;text-align:center;font-size:28px;font-weight:800;
+  color:var(--ink-soft);letter-spacing:.02em;white-space:nowrap;overflow:hidden}
 .basis{position:absolute;left:190px;right:190px;bottom:672px;font-size:28px;
   font-weight:700;color:var(--ink-soft);letter-spacing:-.01em;text-align:center}
 .prog{position:absolute;left:190px;right:190px;top:322px;height:6px;
@@ -181,6 +190,7 @@ def top_bar(m):
     cat = esc(m["category"])
     th = m.get("throughline")
     return (f'<div class="top"><div class="badge">{cat}</div>'
+            + '<div class="brand">@machimaza</div>'
             + (f'<div class="through">{esc(th)}</div>' if th else "")
             + '</div>')
 
@@ -214,7 +224,7 @@ def scene_title(m, hook, dd):
 <div class="body">
   <div class="head" id="h" style="font-size:{max(52, 108 - len(m["title"]))}px">{esc(m["title"])}</div>
 </div></div>{dd}<div class="cap" id="c">{esc(hook)}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('h'), easeOut(seg(t,0.05,0.7)));
   enter(document.getElementById('c'), easeOut(seg(t,0.8,0.6)));
@@ -231,7 +241,7 @@ def scene_value(m, it, pg, ratio, dd):
   <div class="big" id="n">0</div>
   <div class="bar"><div class="fill" id="b" style="width:0%"></div></div>
 </div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const p = seg(t,0.3,1.5);
@@ -263,7 +273,7 @@ def scene_compare(m, it, pg, base_num, dd):
     </div>
   </div>
 </div></div>{dd}<div class="cap" id="c">{esc(it.get("caption") or it["detail"])[:60]}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     ratio2 = (num / gross) if gross else 1.0
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -286,7 +296,7 @@ def scene_step(m, it, pg, no, dd):
   <div class="steptx" id="l">{esc(it["label"])}</div>
   <div class="big" id="n" style="font-size:96px">0</div>
 </div></div>{dd}<div class="cap" id="c">{esc(tx)}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     num, unit = parse_amount(it["value"])
     js = f'''window.draw=(t)=>{{
   const sp = seg(t,0.0,0.45);
@@ -325,7 +335,7 @@ def scene_fact(m, sc, dd):
   <div class="sub" id="s">{esc(sc.get("sub",""))}</div>
   {pts}
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const p = easeOut(seg(t,0.35,0.6));
@@ -352,7 +362,7 @@ def scene_list(m, sc, dd):
   <div class="head" id="l" style="font-size:62px">{esc(sc["label"])}</div>
   <div style="margin-top:44px">{lis}</div>{note}
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     js = '''window.draw=(t)=>{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
   const ls = document.querySelectorAll('.li');
@@ -390,7 +400,7 @@ def scene_compare2(m, sc, dd):
     </div>
   </div>
 </div></div>{dd}<div class="cap" id="c">{esc(sc["screen"])}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     ratio = (na / nb) if nb else 1.0
     js = f'''window.draw=(t)=>{{
   enter(document.getElementById('l'), easeOut(seg(t,0.0,0.45)));
@@ -431,7 +441,7 @@ def scene_table(m, items, dd, cap="지금 캡처해두세요. 신청할 때 다�
 {top_bar(m)}<!--PRG-->
 <div class="body"><table class="tbl">{rows}</table>{note}</div>
 </div>{dd}<div class="cap" id="c">{esc(cap)}</div>
-<div class="brand">@machimaza</div><!--BOT-->'''
+<!--BOT-->'''
     js = '''window.draw=(t)=>{
   const rs = document.querySelectorAll('.r');
   rs.forEach((r,i)=>{ enter(r, easeOut(seg(t, 0.12*i, 0.45))); });
@@ -499,6 +509,56 @@ def build_scenes(d):
     return S
 
 
+# ── 겹침 검사 ─────────────────────────────────────────────────────────
+# 왜 있나: 표 밑 메모가 세 줄로 늘어나자 본문이 상자를 넘쳐 출처줄·채널명
+# 위로 내려앉았습니다. 오류는 나지 않았고, 올린 다음 폰으로 보고 알았습니다.
+# 브라우저는 넘친 글을 그대로 그려주기 때문에 "그려졌다"는 아무 증거가 못 됩니다.
+# 그래서 장면마다 실제 상자를 재고, 부딪히면 그 자리에서 멈춥니다.
+FIT_JS = """() => {
+  const bad = [];
+  const R = el => el ? el.getBoundingClientRect() : null;
+  const body = document.querySelector('.body');
+  if (!body) return bad;
+
+  // 본문 글자들이 실제로 차지한 세로 범위
+  let top = Infinity, bot = -Infinity;
+  body.querySelectorAll('*').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return;
+    if (r.top < top) top = r.top;
+    if (r.bottom > bot) bot = r.bottom;
+  });
+  if (bot === -Infinity) return bad;
+
+  const basis = R(document.querySelector('.basis'));
+  if (basis && bot > basis.top - 8) {
+    bad.push(`본문이 출처줄을 ${(bot - basis.top + 8).toFixed(0)}px 침범`);
+  }
+  const prog = R(document.querySelector('.prog'));
+  if (prog && top < prog.bottom + 8) {
+    bad.push(`본문이 진행바를 ${(prog.bottom + 8 - top).toFixed(0)}px 침범`);
+  }
+
+  // 채널명이 좌우 칩에 부딪히는지
+  const br = R(document.querySelector('.brand'));
+  [['.badge','분야칩'], ['.through','관통 단어'], ['.dd','우상단 칩']].forEach(([sel, name]) => {
+    const o = R(document.querySelector(sel));
+    if (!br || !o || o.width < 1) return;
+    const gap = 12;
+    const hit = br.left < o.right + gap && br.right + gap > o.left
+             && br.top  < o.bottom + gap && br.bottom + gap > o.top;
+    if (hit) bad.push(`채널명이 ${name} 과 붙음`);
+  });
+
+  // 자막이 출처줄을 밀고 올라오는지
+  const cap = R(document.querySelector('.cap'));
+  if (cap && basis && cap.top < basis.bottom + 8) {
+    bad.push(`자막이 출처줄을 ${(basis.bottom + 8 - cap.top).toFixed(0)}px 침범`);
+  }
+  return bad;
+}"""
+
+
 def render(d, base, keep_frames=False):
     base = pathlib.Path(base)
     scenes = build_scenes(d)
@@ -515,6 +575,13 @@ def render(d, base, keep_frames=False):
                         .replace("<!--PRG-->", prog_bar(si, len(scenes))))
             pg.set_content(html, wait_until="load")
             pg.wait_for_timeout(80)
+            hits = pg.evaluate(FIT_JS)
+            if hits:
+                b.close()
+                raise SystemExit(
+                    f"[{si+1}번째 장면] 글자가 겹칩니다 — " + " / ".join(hits)
+                    + "\n  글을 줄이거나 data.json 의 note 를 짧게 하세요."
+                    + "\n  본문이 놓일 자리는 진행바 아래부터 출처줄 위까지입니다.")
             fdir = tmp / f"s{si:02d}"
             fdir.mkdir()
             n = max(1, int(round(anim * FPS)))
