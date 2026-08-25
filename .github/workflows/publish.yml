@@ -1,0 +1,106 @@
+name: 발행
+
+# 손으로 실행합니다 — Actions 탭 → 발행 → Run workflow
+# 기본은 미리보기입니다. 올리려면 publish 를 true 로 바꿔야 합니다.
+# 게이트를 통과하지 못하면 올리는 단계까지 가지 않습니다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      content:
+        description: '콘텐츠 폴더'
+        default: content/2026-08-24-건강보험-환급금
+      target:
+        description: '어디에'
+        type: choice
+        options: [threads]
+        default: threads
+      link:
+        description: '답글에 달 블로그 주소 (비우면 답글 없음)'
+        default: ''
+      publish:
+        description: '실제로 올릴지 — false 면 미리보기만'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      CONTENT: ${{ inputs.content }}
+      LINK: ${{ inputs.link }}
+      DO: ${{ inputs.publish }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+      AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+
+    permissions:
+      contents: write     # 릴리스에 영상을 올리기 위해 필요합니다
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 시스템 패키지
+        run: |
+          set -euxo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-cjk-extra
+
+      - name: 파이썬 패키지
+        run: |
+          set -euxo pipefail
+          python -m pip install -q --upgrade pip
+          python -m pip install -q edge-tts playwright pillow numpy
+          python -m playwright install --with-deps chromium
+
+      - name: 만들기
+        run: |
+          set -euo pipefail
+          python scripts/build_voice.py "$CONTENT" \
+            --voice ko-KR-HyunsuNeural --rate '+15%' --pitch '+10Hz' --engine azure
+          python scripts/make_images.py "$CONTENT"
+          python scripts/motion.py "$CONTENT"
+          python scripts/build_publish.py "$CONTENT"
+
+      - name: 검수 게이트
+        run: |
+          set -euo pipefail
+          echo "게이트를 통과해야 다음 단계로 갑니다."
+          python scripts/verify.py "$CONTENT"
+
+      - name: 쓰레드
+        if: inputs.target == 'threads'
+        run: |
+          set -euo pipefail
+          # set -e 에서 [ ... ] && ... 를 쓰면 조건이 거짓일 때 그 줄이
+          # 실패로 잡혀 스크립트가 그대로 죽습니다. if 로 씁니다.
+          ARGS=(--upload)
+          if [ -n "$LINK" ]; then
+            ARGS+=(--link "$LINK")
+          fi
+          if [ "$DO" = "true" ]; then
+            ARGS+=(--publish)
+          else
+            echo "미리보기입니다. 올리려면 publish 를 true 로 두고 다시 실행하세요."
+          fi
+          python scripts/publish_threads.py "$CONTENT" "${ARGS[@]}"
+
+      - name: 결과 받기
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: machimaza-publish
+          path: |
+            content/*/video.mp4
+            content/*/publish/
+          retention-days: 14
+          if-no-files-found: warn
