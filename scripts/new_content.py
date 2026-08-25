@@ -8,7 +8,7 @@
 
 사용:  python3 scripts/new_content.py <슬러그> [--date YYYY-MM-DD]
 """
-import sys, json, shutil, pathlib, datetime as dt
+import sys, json, re, shutil, pathlib, datetime as dt
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TPL = ROOT / "content" / "_template"
@@ -18,8 +18,14 @@ def main(argv):
     if len(argv) < 2:
         print(__doc__)
         return 1
-    slug = argv[1]
+    slug = argv[1].strip("/")
     date = argv[argv.index("--date") + 1] if "--date" in argv else dt.date.today().isoformat()
+    # 슬러그에 이미 날짜가 붙어 있으면 또 붙이지 않습니다.
+    # 폴더 이름을 그대로 복사해 넣는 일이 잦은데, 그러면
+    # 2026-08-25-2026-08-25-... 가 됩니다 — 실제로 그랬습니다.
+    m = re.match(r"^(\d{4}-\d{2}-\d{2})-(.+)$", slug)
+    if m:
+        date, slug = m.group(1), m.group(2)
     name = f"{date}-{slug}"
     dst = ROOT / "content" / name
     if dst.exists():
