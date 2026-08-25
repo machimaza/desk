@@ -33,6 +33,22 @@ TITLE_MAX = 100
 DESC_MAX = 5000
 CATEGORY = "22"      # People & Blogs — 정보 전달 채널에 무난합니다
 
+# 다른 채널 안내. 유튜브 설명란은 외부 링크에 불이익이 없습니다
+# (쓰레드는 첫 게시물에 링크가 있으면 노출이 줄어 답글로 뺐지만, 여기는 반대입니다).
+# 글을 먼저 둡니다 — 영상은 요약이고, 자세한 건 글에 있습니다.
+CHANNELS = """━━━━━━━━━━━━━━━
+📌 자세한 내용은 블로그에
+
+네이버  https://blog.naver.com/machimaza
+티스토리 https://machimaza.tistory.com
+
+같은 정보를 다른 곳에서도
+인스타  https://www.instagram.com/machi_maza
+쓰레드  https://www.threads.net/@machi_maza
+틱톡    https://www.tiktok.com/@machimaza
+
+마침 필요한 정보를, 알맞게 — 마치마자"""
+
 
 def _conf():
     cid = os.environ.get("YT_CLIENT_ID", "").strip()
@@ -82,8 +98,9 @@ def build_meta(base, privacy):
     body = "\n".join(l for l in (pub / "threads.txt").read_text(encoding="utf-8")
                      .splitlines() if not l.startswith("#")).strip()
     parts = [body, "",
-             "정확한 금액과 자격은 국민건강보험공단 1577-1000 에서 확인하세요.",
+             "정확한 금액과 자격은 소관 기관에서 확인하세요.",
              "출처는 영상 안에 표기했습니다.", "",
+             CHANNELS, "",
              " ".join("#" + t.replace(" ", "") for t in meta.get("태그", [])[:4]),
              "#마치마자"]
     desc = "\n".join(parts)[:DESC_MAX]
