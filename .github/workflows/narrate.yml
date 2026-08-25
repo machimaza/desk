@@ -28,6 +28,11 @@ on:
         type: choice
         options: [korean, variants, multilingual, all]
         default: korean
+      grid:
+        description: '다듬기 격자 — info 는 정보 전달용, child 는 아이 톤'
+        type: choice
+        options: [info, child]
+        default: info
       engine:
         description: '음성 엔진 — azure 는 키가 있어야 합니다'
         type: choice
@@ -48,6 +53,7 @@ jobs:
       PITCH: ${{ inputs.pitch }}
       SAMPLES: ${{ inputs.samples }}
       ENGINE: ${{ inputs.engine }}
+      GRID: ${{ inputs.grid }}
       AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
       AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
 
@@ -84,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/voice_samples.py --mode "$SAMPLES" --engine "$ENGINE" \
-            --voice "$VOICE"
+            --voice "$VOICE" --grid "$GRID"
           ls -la samples/
           cat samples/목록.txt
 
