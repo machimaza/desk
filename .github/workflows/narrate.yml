@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euxo pipefail
           python -m pip install -q --upgrade pip
-          python -m pip install -q edge-tts playwright pillow numpy
+          python -m pip install -q -r requirements.txt
           python -m playwright install --with-deps chromium
 
       - name: 한국어 음성 목록
