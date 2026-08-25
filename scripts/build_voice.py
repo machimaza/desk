@@ -12,10 +12,13 @@
 
 사용:
   python3 scripts/build_voice.py <콘텐츠폴더> --voice ko-KR-InJoonNeural
+  python3 scripts/build_voice.py <콘텐츠폴더> --engine azure --voice ko-KR-SeoHyeonNeural
   python3 scripts/build_voice.py <콘텐츠폴더> --list         음성 목록만
   python3 scripts/build_voice.py <콘텐츠폴더> --dry          TTS 없이 배치만 검증
+
+엔진은 tts.py 가 가릅니다. edge 는 무료·한국어 3종, azure 는 키 필요·한국어 10종.
 """
-import sys, json, asyncio, pathlib, subprocess, tempfile, argparse
+import sys, json, pathlib, subprocess, tempfile, argparse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -35,18 +38,12 @@ def scene_plan(base):
     return out, t
 
 
-async def list_voices():
-    import edge_tts
-    vs = await edge_tts.list_voices()
-    ko = [v for v in vs if v["Locale"].startswith("ko")]
-    for v in sorted(ko, key=lambda x: x["ShortName"]):
-        print(f"  {v['ShortName']:34} {v.get('Gender',''):7} {v.get('FriendlyName','')}")
-    return [v["ShortName"] for v in ko]
-
-
-async def say(text, voice, out, rate="+0%", pitch="+0Hz"):
-    import edge_tts
-    await edge_tts.Communicate(text, voice, rate=rate, pitch=pitch).save(str(out))
+def list_voices(engine="edge"):
+    import tts
+    ko = sorted(tts.voices(engine, "ko-"))
+    for name, gender, label in ko:
+        print(f"  {name:34} {gender:7} {label}")
+    return [n for n, _, _ in ko]
 
 
 def assemble(parts, total, out):
@@ -72,17 +69,19 @@ def main():
     ap.add_argument("--voice", default="ko-KR-InJoonNeural")
     ap.add_argument("--rate", default="+0%")
     ap.add_argument("--pitch", default="+0Hz")
+    ap.add_argument("--engine", default="edge", choices=["edge", "azure"])
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--dry", action="store_true", help="TTS 없이 무음으로 배치만 검증")
     a = ap.parse_args()
     base = pathlib.Path(a.base)
 
     if a.list:
-        asyncio.run(list_voices())
+        list_voices(a.engine)
         return 0
 
     plan, total = scene_plan(base)
-    print(f"[voice] 장면 {len(plan)}개 · 총 {total:.1f}초 · 음성 {a.voice}")
+    print(f"[voice] 장면 {len(plan)}개 · 총 {total:.1f}초 · "
+          f"음성 {a.voice} ({a.engine})")
     tmp = pathlib.Path(tempfile.mkdtemp())
     parts = []
     for i, st, dur, txt in plan:
@@ -99,7 +98,8 @@ def main():
                             "-t", f"{est:.2f}", "-i", "anullsrc=r=24000:cl=mono",
                             "-c:a", "libmp3lame", str(p)], check=True)
         else:
-            asyncio.run(say(txt, a.voice, p, a.rate, a.pitch))
+            import tts
+            tts.say(txt, a.voice, p, a.rate, a.pitch, a.engine)
         d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                                   "format=duration", "-of", "csv=p=0", str(p)],
                                  capture_output=True, text=True).stdout.strip() or 0)
