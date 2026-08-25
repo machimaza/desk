@@ -25,15 +25,24 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 
 def scene_plan(base):
-    """[(장면번호, 시작초, 길이초, 대사)] — motion.py 와 같은 계산을 씁니다."""
+    """[(장면번호, 시작초, 길이초, 대사)] — motion.py 와 같은 계산을 씁니다.
+
+    도입부(opener)가 있으면 맨 앞에 한 줄이 더 붙습니다.
+    벨이 울린 뒤에 나가야 하므로 0.9초에 놓고, 첫 장면 대사는 그만큼 뒤로 밉니다.
+    영상 쪽에서도 첫 장면을 LEAD_IN 만큼 길게 잡으므로 화면과 어긋나지 않습니다.
+    """
     import motion
     d = json.loads((base / "data.json").read_text(encoding="utf-8"))
     scenes = motion.build_scenes(d)
     flow = d.get("flow", {}).get("scenes", [])
+    opener = (d.get("flow", {}).get("opener") or "").strip()
     out, t = [], 0.0
+    if opener:
+        out.append((-1, 0.9, motion.LEAD_IN, opener))
     for i, (_html, anim, hold) in enumerate(scenes):
         voice = flow[i].get("voice", "") if i < len(flow) else ""
-        out.append((i, t, anim + hold, voice.strip()))
+        st = t + motion.LEAD_IN if (opener and i == 0) else t
+        out.append((i, st, anim + hold, voice.strip()))
         t += anim + hold
     return out, t
 
@@ -140,7 +149,8 @@ def main():
                                   "format=duration", "-of", "csv=p=0", str(p)],
                                  capture_output=True, text=True).stdout.strip() or 0)
         flag = "  ⚠ 장면보다 김" if d > dur else ""
-        print(f"  {i+1:>2}. {st:>5.1f}초  대사 {d:4.1f}초 / 장면 {dur:4.1f}초{flag}")
+        name = "도입" if i < 0 else f"{i+1:>2}."
+        print(f"  {name:>4} {st:>5.1f}초  대사 {d:4.1f}초 / 장면 {dur:4.1f}초{flag}")
         parts.append((i, st, p))
 
     out = base / "narration.mp3"
@@ -156,6 +166,8 @@ def main():
         tmpd = pathlib.Path(tempfile.mkdtemp())
         bed = B.prepare(src, total, tmpd / "bed.mp3")
         chime = a.chime or default_chime(base)
+        if chime:
+            chime = B.place_chimes(chime, total, tmpd / "chime.mp3")
         voiced = tmpd / "voice.mp3"
         voiced.write_bytes(out.read_bytes())
         B.mix(voiced, bed, out, chimes=chime, bed_db=a.bgm_db)
