@@ -1,0 +1,10 @@
+# 워크플로 셋이 각자 목록을 들고 있다가 하나가 빠져서 발행이 멈춘 적이 있습니다.
+# (publish.yml 에 markdown 이 없어서 build_publish.py 가 죽었습니다)
+# 목록은 여기 하나뿐입니다. 워크플로는 이 파일만 봅니다.
+
+edge-tts        # 무료 음성. azure 를 못 쓸 때 돌아갈 자리
+playwright      # 카드·영상 렌더 (크로미움은 따로 설치합니다)
+pillow          # 화면 밀도 검사
+numpy           # 영상 계산
+markdown        # blog.md → 티스토리용 HTML
+pyyaml          # 워크플로 파일 자체 검사
