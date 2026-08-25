@@ -47,7 +47,12 @@ def list_voices(engine="edge"):
 
 
 def assemble(parts, total, out):
-    """무음 바닥 위에 각 대사를 시작 시각에 배치합니다."""
+    """무음 바닥 위에 각 대사를 시작 시각에 배치합니다.
+
+    amix 의 duration=first 는 "필터에 처음 들어온 입력"의 길이를 씁니다.
+    무음 바닥을 목록 끝에 두면 첫 대사 길이(4초)에서 잘립니다 — 실제로 그랬습니다.
+    바닥을 맨 앞에 둬야 영상 전체 길이가 유지됩니다.
+    """
     if not parts:
         return False
     ins = ["-f", "lavfi", "-t", f"{total:.2f}", "-i", "anullsrc=r=24000:cl=mono"]
@@ -55,11 +60,20 @@ def assemble(parts, total, out):
         ins += ["-i", str(p)]
     mix = "".join(f"[{i+1}:a]adelay={int(st*1000)}|{int(st*1000)}[d{i}];"
                   for i, (_, st, _) in enumerate(parts))
+    mix += "[0:a]"                                    # ← 바닥이 맨 앞
     mix += "".join(f"[d{i}]" for i in range(len(parts)))
-    mix += f"[0:a]amix=inputs={len(parts)+1}:duration=first:normalize=0[a]"
+    mix += f"amix=inputs={len(parts)+1}:duration=first:normalize=0[a]"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *ins,
                     "-filter_complex", mix, "-map", "[a]",
                     "-c:a", "libmp3lame", "-q:a", "4", str(out)], check=True)
+
+    # 만든 것이 설계대로인지 바로 확인합니다.
+    # 길이가 어긋난 채 넘어가면 영상이 -shortest 로 통째로 잘립니다.
+    got = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                "format=duration", "-of", "csv=p=0", str(out)],
+                               capture_output=True, text=True).stdout.strip() or 0)
+    if abs(got - total) > 1.0:
+        raise SystemExit(f"나레이션 길이가 어긋납니다 — 설계 {total:.1f}초 / 실제 {got:.1f}초")
     return True
 
 
