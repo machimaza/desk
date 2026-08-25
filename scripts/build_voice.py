@@ -44,9 +44,9 @@ async def list_voices():
     return [v["ShortName"] for v in ko]
 
 
-async def say(text, voice, out, rate="+0%"):
+async def say(text, voice, out, rate="+0%", pitch="+0Hz"):
     import edge_tts
-    await edge_tts.Communicate(text, voice, rate=rate).save(str(out))
+    await edge_tts.Communicate(text, voice, rate=rate, pitch=pitch).save(str(out))
 
 
 def assemble(parts, total, out):
@@ -71,6 +71,7 @@ def main():
     ap.add_argument("base")
     ap.add_argument("--voice", default="ko-KR-InJoonNeural")
     ap.add_argument("--rate", default="+0%")
+    ap.add_argument("--pitch", default="+0Hz")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--dry", action="store_true", help="TTS 없이 무음으로 배치만 검증")
     a = ap.parse_args()
@@ -98,7 +99,7 @@ def main():
                             "-t", f"{est:.2f}", "-i", "anullsrc=r=24000:cl=mono",
                             "-c:a", "libmp3lame", str(p)], check=True)
         else:
-            asyncio.run(say(txt, a.voice, p, a.rate))
+            asyncio.run(say(txt, a.voice, p, a.rate, a.pitch))
         d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                                   "format=duration", "-of", "csv=p=0", str(p)],
                                  capture_output=True, text=True).stdout.strip() or 0)
