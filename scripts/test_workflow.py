@@ -49,6 +49,20 @@ def check_file(f):
         p = subprocess.run(["bash", "-n"], input=body, capture_output=True, text=True)
         if p.returncode:
             bad.append(f"run#{i}: {p.stderr.strip()[:140]}")
+    # (4) 패키지 목록을 제자리에서 가져오는지
+    # 워크플로마다 목록을 따로 적어두면 하나가 빠져도 다른 데선 멀쩡해서
+    # 실행할 때가 되어서야 압니다. 실제로 publish.yml 에 markdown 이 빠져
+    # 발행이 멈춘 적이 있습니다. 목록은 requirements.txt 하나뿐입니다.
+    req = ROOT / "requirements.txt" if "ROOT" in globals() else \
+          pathlib.Path(__file__).resolve().parent.parent / "requirements.txt"
+    if not req.exists():
+        bad.append("requirements.txt 가 없습니다 — 워크플로가 이 파일을 설치합니다")
+    for m in re.finditer(r"pip install [^\n]*", y):
+        line = m.group(0)
+        if "--upgrade pip" in line:
+            continue
+        if "-r requirements.txt" not in line:
+            bad.append(f"패키지를 직접 나열함 — requirements.txt 를 쓰세요: {line.strip()}")
     return bad
 
 
