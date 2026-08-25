@@ -14,7 +14,6 @@ narrate.yml 은 이 파일을 한 줄로 부르기만 합니다 — 반복문을
   python scripts/voice_samples.py --mode all
 """
 import argparse
-import asyncio
 import pathlib
 import subprocess
 import sys
@@ -22,7 +21,11 @@ import sys
 LINE = "퇴직하면 건강보험료 얼마 나오는지, 기한 안에 알려드립니다. 마치마자입니다."
 
 # 한국어 전용 음성 — 목록 조회가 실패해도 이건 있습니다.
-KO = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural", "ko-KR-HyunsuMultilingualNeural"]
+KO = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural", "ko-KR-HyunsuMultilingualNeural",
+      "ko-KR-SeoHyeonNeural", "ko-KR-YuJinNeural", "ko-KR-JiMinNeural",
+      "ko-KR-SoonBokNeural", "ko-KR-BongJinNeural", "ko-KR-GookMinNeural",
+      "ko-KR-HyunsuNeural"]
+# 뒤의 일곱은 azure 에서만 나옵니다. edge 로 돌리면 목록에 없어서 저절로 빠집니다.
 
 # 변형 — 빠르기와 높낮이. 원본(+0%/+0Hz)은 기본 묶음에 이미 있으니 뺍니다.
 VARIANTS = [("+12%", "+0Hz", "조금 빠르게"),
@@ -31,14 +34,18 @@ VARIANTS = [("+12%", "+0Hz", "조금 빠르게"),
 MULTI_CAP = 12  # 합본이 너무 길어지지 않게. 잘린 개수는 아래에서 알립니다.
 
 
-async def voices():
-    import edge_tts
-    return await edge_tts.list_voices()
+ENGINE = "edge"  # main() 에서 정해집니다
 
 
-async def say(text, voice, out, rate="+0%", pitch="+0Hz"):
-    import edge_tts
-    await edge_tts.Communicate(text, voice, rate=rate, pitch=pitch).save(str(out))
+def all_voices():
+    import tts
+    return {n for n, _, _ in tts.voices(ENGINE, "")} if ENGINE == "edge" else \
+           {n for n, _, _ in tts.voices(ENGINE, "ko-")}
+
+
+def say(text, voice, out, rate="+0%", pitch="+0Hz"):
+    import tts
+    tts.say(text, voice, out, rate, pitch, ENGINE)
 
 
 def silence(path, seconds=0.7):
@@ -58,13 +65,13 @@ def concat(parts, out):
     lst.unlink()
 
 
-async def build(out, want):
+def build(out, want):
     out.mkdir(parents=True, exist_ok=True)
     tmp = out / "_tmp"
     tmp.mkdir(exist_ok=True)
 
     try:
-        avail = {v["ShortName"] for v in await voices()}
+        avail = all_voices()
     except Exception as ex:
         print(f"[경고] 음성 목록 조회 실패 ({ex}) — 한국어 전용만 만듭니다")
         avail = set(KO)
@@ -103,11 +110,11 @@ async def build(out, want):
             tag = f"{short}_{rate}_{pitch}".replace("%", "").replace("+", "")
             f = out / f"{gname}_{i:02d}_{tag}.mp3"
             print(f"  {gname} {i:>2}. {v} {rate} {pitch} — {label}")
-            await say(LINE, v, f, rate, pitch)
+            say(LINE, v, f, rate, pitch)
 
             # 번호를 말해주는 안내 — 합본을 눈 감고 들을 수 있게
             num = tmp / f"n_{gname}_{i:02d}.mp3"
-            await say(f"{i}번.", "ko-KR-SunHiNeural", num)
+            say(f"{i}번.", "ko-KR-SunHiNeural", num)
             gap = tmp / f"g_{gname}_{i:02d}.mp3"
             silence(gap)
             for p in (num, f, gap):
@@ -132,8 +139,11 @@ def main(argv):
     ap.add_argument("--mode", default="all",
                     choices=["all", "korean", "multilingual"])
     ap.add_argument("--out", default="samples")
+    ap.add_argument("--engine", default="edge", choices=["edge", "azure"])
     a = ap.parse_args(argv[1:])
-    asyncio.run(build(pathlib.Path(a.out), a.mode))
+    global ENGINE
+    ENGINE = a.engine
+    build(pathlib.Path(a.out), a.mode)
     return 0
 
 
