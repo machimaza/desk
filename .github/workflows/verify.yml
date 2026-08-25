@@ -54,6 +54,7 @@ jobs:
           python scripts/test_workflow.py
           python scripts/test_check_numbers.py
           python scripts/test_lint_terms.py
+          python scripts/test_tts.py
 
       - name: 검사 대상 목록
         run: |
