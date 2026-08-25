@@ -110,7 +110,15 @@ def upload(base, privacy="private", do_publish=False):
     print("─" * 46)
 
     if not do_publish:
-        print("\n미리보기입니다. 실제로 올리려면 --publish 를 붙이세요.")
+        # 미리보기에서도 열쇠는 확인합니다. 문구만 보여주고 끝내면
+        # 정작 올릴 때 토큰이 틀린 걸 알게 됩니다 — 그때는 이미 늦습니다.
+        try:
+            access_token()
+            print("\n[유튜브] 열쇠 확인됨 — 접근 토큰을 정상적으로 받았습니다.")
+        except SystemExit as ex:
+            print(f"\n[유튜브] 열쇠 확인 실패\n{ex}")
+            raise
+        print("미리보기입니다. 실제로 올리려면 --publish 를 붙이세요.")
         return None
 
     tok = access_token()
