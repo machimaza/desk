@@ -55,6 +55,7 @@ jobs:
           python scripts/test_check_numbers.py
           python scripts/test_lint_terms.py
           python scripts/test_tts.py
+          python scripts/test_brand.py
 
       - name: 검사 대상 목록
         run: |
@@ -72,7 +73,7 @@ jobs:
           if [ ! -s /tmp/dirs.txt ]; then
             find content -mindepth 1 -maxdepth 1 -type d ! -name '_*' | sort > /tmp/dirs.txt
           fi
-          # 밑줄로 시작하는 폴더(_template · _pipeline-test)는 콘텐츠가 아닙니다.
+          # 밑줄로 시작하는 폴더(_template)는 콘텐츠가 아닙니다.
           grep -v '/_' /tmp/dirs.txt > /tmp/dirs2.txt || true
           mv /tmp/dirs2.txt /tmp/dirs.txt
           echo "검사 대상:"

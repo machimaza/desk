@@ -1,4 +1,7 @@
-/* 마치마자 브랜드 토큰 — 모든 이미지/영상 렌더링이 이 파일 하나를 참조합니다 */
+/* 마치마자 브랜드 토큰 — 색의 기준값입니다.
+   렌더러(motion.py · pipeline.py)는 같은 값을 각자 갖고 있고,
+   어긋나면 scripts/test_brand.py 가 CI 를 멈춥니다.
+   새 색은 반드시 여기에 먼저 넣으세요. */
 :root{
   --ink:#16202E;          /* 본문 */
   --ink-soft:#4A5666;     /* 보조 텍스트 */
@@ -9,6 +12,7 @@
   --cat-health:#2E6B5E;
   --cat-money:#1F5C8B;
   --cat-life:#C2703D;
+  --warn:#A03A28;        /* 주의 문구 — 놓치면 손해 보는 조건 */
   --font: "Noto Sans CJK KR","Noto Sans KR",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
