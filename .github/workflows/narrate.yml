@@ -1,0 +1,99 @@
+name: 음성·영상
+
+# 이 컨테이너에서는 TTS 가 막혀 있어(프록시) 러너에서 만듭니다.
+# 손으로 실행합니다 — Actions 탭 → 음성·영상 → Run workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '샘플 듣기(samples) 또는 영상 만들기(build)'
+        type: choice
+        options: [samples, build]
+        default: samples
+      content:
+        description: '콘텐츠 폴더 (build 일 때)'
+        default: content/2026-08-24-건강보험-환급금
+      voice:
+        description: '음성 이름 (build 일 때)'
+        default: ko-KR-InJoonNeural
+      rate:
+        description: '말 빠르기'
+        default: '+0%'
+
+jobs:
+  narrate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      MODE: ${{ inputs.mode }}
+      CONTENT: ${{ inputs.content }}
+      VOICE: ${{ inputs.voice }}
+      RATE: ${{ inputs.rate }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 시스템 패키지
+        run: |
+          set -euxo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-cjk-extra
+
+      - name: 파이썬 패키지
+        run: |
+          set -euxo pipefail
+          python -m pip install -q --upgrade pip
+          python -m pip install -q edge-tts playwright pillow numpy
+          python -m playwright install --with-deps chromium
+
+      - name: 한국어 음성 목록
+        run: |
+          set -euo pipefail
+          python -m edge_tts --list-voices | grep -i '^Name: ko-' || true
+
+      - name: 샘플 만들기
+        if: inputs.mode == 'samples'
+        run: |
+          set -euo pipefail
+          mkdir -p samples
+          LINE="퇴직하면 건강보험료 얼마 나오는지, 기한 안에 알려드립니다. 마치마자입니다."
+          # 목록을 파일로 받아 while 로 순회합니다.
+          # 여러 줄 값을 for 목록에 직접 넣으면 문법 오류가 납니다.
+          python -m edge_tts --list-voices \
+            | grep -oE 'ko-KR-[A-Za-z]+Neural' | sort -u > /tmp/voices.txt
+          echo "찾은 음성:"; cat /tmp/voices.txt
+          while IFS= read -r v; do
+            [ -n "$v" ] || continue
+            echo "  → $v"
+            python -m edge_tts --voice "$v" --text "$LINE" --write-media "samples/$v.mp3" || true
+          done < /tmp/voices.txt
+          ls -la samples/
+
+      - name: 음성 + 영상 만들기
+        if: inputs.mode == 'build'
+        run: |
+          set -euo pipefail
+          test -f "$CONTENT/data.json"
+          python scripts/build_voice.py "$CONTENT" --voice "$VOICE" --rate "$RATE"
+          python scripts/motion.py "$CONTENT"
+          python scripts/make_images.py "$CONTENT"
+          ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$CONTENT/video.mp4"
+
+      - name: 결과 받기
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: machimaza-voice
+          path: |
+            samples/
+            content/*/video.mp4
+            content/*/narration.mp3
+          retention-days: 14
+          if-no-files-found: warn
