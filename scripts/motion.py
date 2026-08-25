@@ -39,7 +39,11 @@ CSS = """
 *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);
   width:1080px;height:1920px;overflow:hidden}
-.wrap{width:1080px;height:1920px;padding:210px 190px 720px 100px;
+/* 좌우 여백은 같아야 합니다. 예전에 왼쪽 100 / 오른쪽 190 이라
+   글이 왼쪽으로 밀려 보였습니다. 오른쪽을 넓게 뒀던 건 쇼츠의
+   좋아요·공유 버튼을 피하려던 것인데, 150 이면 충분히 비켜갑니다.
+   아래 720 은 제목·설명이 덮는 자리라 그대로 둡니다. */
+.wrap{width:1080px;height:1920px;padding:210px 150px 720px 150px;
   display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:16px;margin-bottom:50px}
 /* 좌: 분야 — 조용한 테두리. 우: 관통 단어 — 진한 배경. 오른쪽이 더 중요합니다. */
@@ -51,10 +55,12 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .pg{margin-left:auto;font-size:34px;font-weight:800;color:var(--ink-soft)}
 .body{flex:1;display:flex;flex-direction:column;justify-content:center}
 .kicker{font-size:52px;font-weight:800;color:var(--cat);margin-bottom:30px}
-.head{font-weight:900;line-height:1.18;letter-spacing:-.035em;word-break:keep-all}
+.head{font-weight:900;line-height:1.18;letter-spacing:-.035em;
+  word-break:keep-all;text-align:center}
 /* 자릿수가 길어져도 단위가 줄바꿈되지 않도록 — 프로토타입에서 발견한 버그 */
 .big{font-size:132px;font-weight:900;color:var(--cat);letter-spacing:-.05em;
-  margin:30px 0 18px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  margin:30px 0 18px;white-space:nowrap;font-variant-numeric:tabular-nums;
+  text-align:center}
 .unit{font-size:64px;font-weight:800;margin-left:6px}
 .bar{height:26px;background:var(--line);overflow:hidden;border-radius:999px}
 .fill{height:100%;background:var(--cat);border-radius:999px}
@@ -68,15 +74,20 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .pt span{color:var(--ink-soft);font-weight:700;flex:none;min-width:250px}
 .pt b{font-weight:800}
 .sub{font-size:44px;font-weight:700;color:var(--ink-soft);
-  margin-top:10px;word-break:keep-all;line-height:1.4}
+  margin-top:10px;word-break:keep-all;line-height:1.4;text-align:center}
 .cmp .lab2{font-size:38px;font-weight:800;color:var(--ink-soft);margin-bottom:12px;
   word-break:keep-all}
+/* 항목 글자는 왼쪽 정렬을 지킵니다. 여러 줄을 가운데로 맞추면
+   줄마다 시작점이 달라져 눈이 매번 새로 찾아야 합니다.
+   대신 묶음 전체를 가운데에 놓습니다. */
 .li{display:flex;align-items:center;gap:24px;font-size:56px;font-weight:800;
-  margin-bottom:26px;word-break:keep-all}
+  margin-bottom:26px;word-break:keep-all;justify-content:flex-start}
 .li .dot{width:18px;height:18px;border-radius:999px;background:var(--cat);flex:none}
+/* 메모는 세로선을 떼고 가운데로. 선이 있으면 가운데 정렬이 어색합니다. */
 .note{margin-top:28px;font-size:40px;font-weight:800;color:var(--ink-soft);
-  border-left:6px solid var(--line);padding-left:20px;word-break:keep-all}
-.note.warn{color:#A03A28;border-left-color:#A03A28}
+  padding:14px 20px 0;word-break:keep-all;text-align:center;
+  border-top:2px solid var(--line)}
+.note.warn{color:#A03A28;border-top-color:#A03A28}
 .stepno{width:104px;height:104px;border-radius:999px;background:var(--cat);color:#fff;
   font-size:56px;font-weight:900;display:flex;align-items:center;justify-content:center;
   margin-bottom:34px}
@@ -90,15 +101,17 @@ body{font-family:var(--font);background:var(--paper);color:var(--ink);
 .tbl th:first-child{text-align:left}
 .tbl td.same{text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl{font-variant-numeric:tabular-nums}
-.dd{position:absolute;top:210px;right:100px;background:var(--ink);color:var(--paper);
+.dd{position:absolute;top:210px;right:150px;background:var(--ink);color:var(--paper);
   font-size:30px;font-weight:900;padding:12px 22px;border-radius:12px}
-.cap{position:absolute;left:100px;right:190px;bottom:460px;font-size:46px;font-weight:800;
-  line-height:1.35;border-left:8px solid var(--cat);padding-left:26px;word-break:keep-all}
-.brand{position:absolute;left:100px;bottom:625px;font-size:26px;font-weight:800;
-  color:var(--ink-soft)}
-.basis{position:absolute;left:100px;right:190px;bottom:672px;font-size:28px;
-  font-weight:700;color:var(--ink-soft);letter-spacing:-.01em}
-.prog{position:absolute;left:100px;right:190px;top:322px;height:6px;
+/* 자막·출처·진행바도 좌우를 같게 둡니다. 본문만 가운데로 맞추고
+   이것들을 왼쪽에 두면 화면이 다시 기울어 보입니다. */
+.cap{position:absolute;left:150px;right:150px;bottom:460px;font-size:46px;font-weight:800;
+  line-height:1.35;word-break:keep-all;text-align:center}
+.brand{position:absolute;left:150px;right:150px;bottom:625px;font-size:26px;
+  font-weight:800;color:var(--ink-soft);text-align:center}
+.basis{position:absolute;left:150px;right:150px;bottom:672px;font-size:28px;
+  font-weight:700;color:var(--ink-soft);letter-spacing:-.01em;text-align:center}
+.prog{position:absolute;left:150px;right:150px;top:322px;height:6px;
   background:var(--line);border-radius:999px;overflow:hidden}
 .prog>i{display:block;height:100%;background:var(--cat);border-radius:999px}
 """
