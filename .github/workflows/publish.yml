@@ -13,11 +13,16 @@ on:
       target:
         description: '어디에'
         type: choice
-        options: [threads]
+        options: [threads, youtube]
         default: threads
       link:
         description: '답글에 달 블로그 주소 (비우면 답글 없음)'
         default: ''
+      privacy:
+        description: '유튜브 공개 범위 — 앱 검수 전에는 private 만 됩니다'
+        type: choice
+        options: [private, unlisted, public]
+        default: private
       publish:
         description: '실제로 올릴지 — false 면 미리보기만'
         type: boolean
@@ -38,6 +43,10 @@ jobs:
       AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
       THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+      PRIVACY: ${{ inputs.privacy }}
 
     permissions:
       contents: write     # 릴리스에 영상을 올리기 위해 필요합니다
@@ -93,6 +102,18 @@ jobs:
             echo "미리보기입니다. 올리려면 publish 를 true 로 두고 다시 실행하세요."
           fi
           python scripts/publish_threads.py "$CONTENT" "${ARGS[@]}"
+
+      - name: 유튜브
+        if: inputs.target == 'youtube'
+        run: |
+          set -euo pipefail
+          ARGS=(--privacy "$PRIVACY")
+          if [ "$DO" = "true" ]; then
+            ARGS+=(--publish)
+          else
+            echo "미리보기입니다. 올리려면 publish 를 true 로 두고 다시 실행하세요."
+          fi
+          python scripts/publish_youtube.py "$CONTENT" "${ARGS[@]}"
 
       - name: 결과 받기
         if: always()
