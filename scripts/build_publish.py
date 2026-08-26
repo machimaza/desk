@@ -8,7 +8,8 @@
 
 만드는 것 (publish/ 폴더)
   tistory.html   티스토리 HTML 모드에 그대로 붙여 넣는 본문
-  naver.txt      네이버 스마트에디터용 평문 (이미지 삽입 지점 표시)
+  naver.html     네이버용 — 브라우저에서 열어 통째로 복사해 붙입니다 (표·굵게 유지)
+  naver.txt      네이버용 평문 (표가 필요 없을 때 · 이미지 삽입 지점 표시)
   meta.json      제목 · 요약 · 태그 · 카테고리
   images.txt     업로드해야 할 이미지 순서
   instagram.txt  캐러셀 캡션 + 해시태그 5개
@@ -24,6 +25,22 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TBL = 'style="width:100%;border-collapse:collapse;margin:20px 0;font-size:15px"'
 TD = 'style="border:1px solid #ddd;padding:10px 12px"'
 TH = 'style="border:1px solid #ddd;padding:10px 12px;background:#f6f6f6;font-weight:700"'
+
+
+def notice_for(category):
+    """고지문구는 categories.json 이 카테고리별로 들고 있습니다.
+
+    예전에는 이 자리에 '국민건강보험공단 1577-1000' 이 코드에 박혀 있었습니다.
+    건강보험 글에서 시작한 문장이 그대로 남아, 근로장려금 글의 인스타 캡션이
+    **엉뚱한 기관 번호**를 안내하고 있었습니다.
+    선언만 되고 아무도 읽지 않던 필드가 또 하나 있었던 셈입니다.
+    """
+    try:
+        cats = json.loads((ROOT / "categories.json").read_text(encoding="utf-8"))
+        txt = (cats.get("카테고리", {}).get(category) or {}).get("고지문구") or ""
+    except Exception:
+        txt = ""
+    return txt.strip()
 
 
 def md_to_tistory(md):
@@ -55,6 +72,86 @@ def md_to_naver(md):
     return t.strip()
 
 
+# ── 네이버용 HTML ──────────────────────────────────────────────────
+# 스마트에디터에는 HTML 소스 모드가 없습니다. 그래서 파일을 '붙여넣는' 게 아니라,
+# **브라우저에 띄운 화면을 통째로 복사해서** 에디터에 붙입니다(서식 있는 붙여넣기).
+# 이 경로로는 제목·굵게·목록·**표**가 살아남습니다 — 손이 제일 많이 가던 부분입니다.
+#
+# 정직하게 적어 둘 것: 네이버는 붙여넣은 것을 자기 서식으로 정규화합니다.
+# 글꼴과 색은 네이버 기본값으로 바뀔 수 있습니다. 그래서 여기서는 색을 쓰지 않고
+# 검정·회색만 씁니다 — 어차피 바뀔 것을 넣으면 결과가 들쭉날쭉해집니다.
+# 이미지는 클립보드로 넘어가지 않습니다. 자리표시가 남고 거기에 직접 올리면 됩니다.
+
+NAVER_CSS = """
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:#eef0f3;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",
+  "Noto Sans KR",sans-serif;color:#111;line-height:1.8}
+.guide{max-width:860px;margin:24px auto 0;background:#fff8e1;border:1px solid #e8c874;
+  border-radius:10px;padding:18px 22px;font-size:14px;line-height:1.7;color:#5a4a1f}
+.guide b{color:#3b3110}
+.guide ol{margin:10px 0 0;padding-left:20px}
+.guide li{margin:4px 0}
+button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;
+  border:1px solid #3b7a57;background:#3b7a57;color:#fff;cursor:pointer}
+#msg{margin-left:12px;font-weight:700;color:#3b7a57}
+.sheet{max-width:860px;margin:18px auto 60px;background:#fff;border-radius:10px;
+  padding:44px 48px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+/* 아래부터가 실제로 복사되는 부분입니다. 색을 쓰지 않습니다. */
+#body{font-size:16px}
+#body h2{font-size:21px;font-weight:800;margin:34px 0 12px;padding-top:14px;
+  border-top:2px solid #222}
+#body h3{font-size:18px;font-weight:800;margin:24px 0 8px}
+#body p{margin:0 0 16px}
+#body ul,#body ol{margin:0 0 16px;padding-left:22px}
+#body li{margin:6px 0}
+#body strong{font-weight:800}
+#body table{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px}
+#body th{border:1px solid #999;padding:9px 11px;background:#f2f2f2;font-weight:800;
+  text-align:left}
+#body td{border:1px solid #999;padding:9px 11px}
+#body blockquote{margin:18px 0;padding:12px 16px;border-left:4px solid #666;
+  background:#f7f7f7}
+#body .ph{border:2px dashed #999;background:#fafafa;padding:16px;text-align:center;
+  font-weight:800;margin:18px 0}
+"""
+
+NAVER_JS = """
+function pick(){
+  const el = document.getElementById('body');
+  const r = document.createRange(); r.selectNodeContents(el);
+  const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  document.getElementById('msg').textContent =
+    ok ? '복사했습니다. 스마트에디터에 붙여넣으세요.'
+       : '본문이 선택됐습니다. Ctrl+C (맥은 Cmd+C) 를 누르세요.';
+}
+"""
+
+
+def md_to_naver_html(md, title, imgs):
+    import markdown
+    html = markdown.markdown(md, extensions=["tables", "fenced_code"])
+    html = re.sub(r'<p><img alt="([^"]*)" src="images/([^"]+)"\s*/?></p>',
+                  r'<p class="ph">▲ 여기에 \2 를 올리세요 · 대체텍스트: \1</p>', html)
+    # 이미지 목록은 <li> 로 넣으면 안내 번호(1·2·3)에 이어 붙어 4·5·6 이 됩니다.
+    # 안내 단계가 여덟 개인 것처럼 보였습니다. 한 줄 안에 나열합니다.
+    steps = " → ".join(imgs)
+    return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+            f'<meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<title>{title} — 네이버 붙여넣기용</title><style>{NAVER_CSS}</style></head><body>'
+            f'<div class="guide"><b>네이버 블로그에 붙여넣는 법</b>'
+            f'<ol><li>아래 <b>본문 복사</b> 를 누릅니다 (안 되면 본문만 드래그해서 Ctrl+C).</li>'
+            f'<li>스마트에디터 본문에 <b>그대로 붙여넣습니다.</b> 제목·굵게·목록·표가 따라옵니다.</li>'
+            f'<li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: {steps or "없음"}</li>'
+            f'<li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol>'
+            f'<button onclick="pick()">본문 복사</button><span id="msg"></span></div>'
+            f'<div class="sheet"><div id="body">{html}</div></div>'
+            f'<script>{NAVER_JS}</script></body></html>')
+
+
 def build(base):
     base = pathlib.Path(base)
     d = json.loads((base / "data.json").read_text(encoding="utf-8"))
@@ -68,6 +165,8 @@ def build(base):
     (out / "naver.txt").write_text(md_to_naver(body), encoding="utf-8")
 
     imgs = re.findall(r'!\[[^\]]*\]\(images/([^)]+)\)', md)
+    (out / "naver.html").write_text(
+        md_to_naver_html(body, m["title"], imgs), encoding="utf-8")
     cards = sorted(x.name for x in (base / "images").glob("card_*.png"))
     (out / "images.txt").write_text(
         "[블로그] 본문에 나오는 순서입니다. 에디터에서 이 순서대로 올리세요.\n"
@@ -87,7 +186,7 @@ def build(base):
     ig = [hook, "",
           "\n".join(f"· {b}" for b in beats[:5]), "",
           d.get("cta", "저장해두세요"), "",
-          "정확한 금액과 자격은 국민건강보험공단 1577-1000 에서 확인하세요.",
+          (notice_for(m.get("category", "")) or "정확한 내용은 담당 기관에 확인하세요") + ".",
           "출처는 카드 안에 표기했습니다.", "",
           " ".join(tags)]
     (out / "instagram.txt").write_text(
@@ -123,7 +222,7 @@ def build(base):
 
 def main(argv):
     out, meta, imgs = build(argv[1])
-    print(f"[publish] {out}/ — tistory.html · naver.txt · instagram.txt · threads.txt · meta.json · images.txt")
+    print(f"[publish] {out}/ — tistory.html · naver.html · naver.txt · instagram.txt · threads.txt · meta.json · images.txt")
     print(f"  제목 {meta['제목']}")
     print(f"  태그 {', '.join(meta['태그'])}")
     print(f"  이미지 {len(imgs)}장 · 본문 {meta['본문자수']}자")

@@ -75,6 +75,52 @@ def check_channels():
     return bad
 
 
+def check_hardcoded_notice():
+    """기관 이름이 **코드가 내보내는 문자열**에 박혀 있으면 잡습니다.
+
+    `categories.json` 이 카테고리별 `고지문구` 를 들고 있는데, 예전에는
+    `build_publish.py` 가 그걸 안 읽고 '국민건강보험공단 1577-1000' 을
+    코드에 박아뒀습니다. 건강보험 글에서 시작한 문장이 그대로 남아,
+    **근로장려금 글의 인스타 캡션이 엉뚱한 기관을 안내**하고 있었습니다.
+
+    주석과 독스트링은 봐줍니다 — 설명하려면 이름을 적어야 하니까요.
+    처음엔 줄 단위로 번호만 찾았는데, 카드 높이 1350 과 여백 126 까지
+    걸려서 여덟 줄이 헛으로 잡혔습니다.
+    """
+    import ast as _ast
+    names = ("국민건강보험공단", "국세청", "국민연금공단", "고용노동부", "1577-1000")
+    # 검사 대상은 **내보내는 것을 만드는 파일**뿐입니다.
+    # 린터(lint_*)는 기관 이름을 '찾기 위해' 갖고 있어야 합니다 — 그건 출력이 아닙니다.
+    MAKERS = ("build_publish.py", "build_narration.py", "motion.py", "pipeline.py",
+              "publish_youtube.py", "publish_threads.py", "new_content.py")
+    out = []
+    for f in sorted((ROOT / "scripts").glob("*.py")):
+        if f.name not in MAKERS:
+            continue
+        try:
+            tree = _ast.parse(f.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        docs = set()
+        for node in _ast.walk(tree):
+            if isinstance(node, (_ast.Module, _ast.FunctionDef, _ast.AsyncFunctionDef,
+                                 _ast.ClassDef)):
+                for st in getattr(node, "body", []):
+                    if (isinstance(st, _ast.Expr)
+                            and isinstance(st.value, _ast.Constant)
+                            and isinstance(st.value.value, str)):
+                        docs.add(id(st.value))
+        for node in _ast.walk(tree):
+            if (isinstance(node, _ast.Constant) and isinstance(node.value, str)
+                    and id(node) not in docs):
+                for n in names:
+                    if n in node.value:
+                        out.append(f"{f.name}:{node.lineno} '{n}' 이 문자열에 있습니다 — "
+                                   "categories.json 의 고지문구를 읽으세요")
+                        break
+    return out
+
+
 def check_shared_places():
     """영상(motion.py)과 포스터·카드(pipeline.py)가 같은 요소를 같은 자리에 그리는지.
 
@@ -139,6 +185,13 @@ def main():
         for name, i, h, line in bad:
             print(f"  {name}:{i}  {h}   {line}")
         print("\n  → 이 색을 계속 쓰려면 brand/tokens.css 에 먼저 넣으세요.")
+        return 1
+
+    ph = check_hardcoded_notice()
+    if ph:
+        print("[실패] 기관 안내가 코드에 박혀 있습니다")
+        for m in ph:
+            print("  " + m)
         return 1
 
     sh = check_shared_places()
