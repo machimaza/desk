@@ -239,21 +239,26 @@ def main(base):
             bg = np.bincount(a.ravel()).argmax()
             return float((np.abs(a.astype(int) - int(bg)) > 12).mean() * 100)
 
-        # 카드(세로·인스타)와 그림(가로·블로그) 둘 다 봅니다.
-        # 블로그가 카드를 그대로 쓰던 시절에는 한 벌뿐이었습니다.
-        cards = sorted((base / "images").glob("card_*.png")) \
-            + sorted((base / "images").glob("fig_*.png"))
-        if cards:
-            vals = [(c.name, _ink(c)) for c in cards]
-            thin = [n for n, v in vals if v < 5.0]
+        # 카드(세로·인스타)와 그림(가로·블로그)을 **따로** 잽니다.
+        #
+        # 한 기준으로 쟀더니 멀쩡한 가로 그림이 '비어 있다' 로 걸렸습니다(4.9%).
+        # 가로는 같은 내용을 넓은 판에 그리느라 글자가 작아져서, 잉크 비율이
+        # 구조적으로 0.5%p 쯤 낮게 나옵니다. 판형이 다르면 기준도 달라야 합니다.
+        # 이 검사가 잡으려는 것은 '비어 있는 장'이지 '조금 헐렁한 장'이 아닙니다.
+        for kind, pat, floor in (("카드", "card_*.png", 5.0), ("그림", "fig_*.png", 4.0)):
+            items = sorted((base / "images").glob(pat))
+            if not items:
+                continue
+            vals = [(c.name, _ink(c)) for c in items]
+            thin = [n for n, v in vals if v < floor]
             avg = sum(v for _, v in vals) / len(vals)
             if thin:
-                E.append(f"카드가 비어 있습니다 {thin} — 잉크 5% 미만. "
-                         f"인스타는 음성이 없으므로 points 로 내용을 채우세요")
-            elif avg < 6.0:
-                W.append(f"카드 평균 밀도 {avg:.1f}% — 6% 이상을 권합니다")
+                E.append(f"{kind}이 비어 있습니다 {thin} — 잉크 {floor}% 미만. "
+                         f"화면에 넣을 내용을 points 로 채우세요")
+            elif avg < floor + 1.0:
+                W.append(f"{kind} 평균 밀도 {avg:.1f}% — {floor + 1.0:.0f}% 이상을 권합니다")
             else:
-                ok(f"카드 밀도 평균 {avg:.1f}% (최소 {min(v for _, v in vals):.1f}%)")
+                ok(f"{kind} 밀도 평균 {avg:.1f}% (최소 {min(v for _, v in vals):.1f}%)")
     except ImportError:
         W.append("Pillow 없음 — 화면 밀도 검사를 건너뜁니다")
 

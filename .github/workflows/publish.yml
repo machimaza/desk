@@ -87,6 +87,25 @@ jobs:
           python scripts/motion.py "$CONTENT" --channel "$CH"
           python scripts/build_publish.py "$CONTENT"
 
+      # 이미지는 **사람이 손으로 올립니다**(네이버·티스토리는 자동화가 약관 위반).
+      # 그런데 저장소에도 없고 산출물에도 없어서, 어디서도 받을 수 없었습니다.
+      # 재생성은 되지만 playwright 와 한글 폰트가 필요해서 사람에게는 의미가 없습니다.
+      # 여기서 만든 것을 저장소에 되돌려 놓습니다 — 이 러너에 그 환경이 이미 있습니다.
+      - name: 이미지를 저장소에 되돌리기
+        run: |
+          set -euo pipefail
+          git config user.name  "machimaza-bot"
+          git config user.email "chw6236@gmail.com"
+          git add -A "$CONTENT/images" "$CONTENT/thumb.png" "$CONTENT/publish" 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "바뀐 그림이 없습니다."
+          else
+            git commit -q -m "chore: $CONTENT 이미지·발행 키트 갱신 (자동)"
+            git pull --rebase -q origin main || true
+            git push -q origin HEAD:main
+            echo "저장소에 되돌렸습니다."
+          fi
+
       - name: 검수 게이트
         run: |
           set -euo pipefail
@@ -130,5 +149,7 @@ jobs:
           path: |
             content/*/video.mp4
             content/*/publish/
+            content/*/images/
+            content/*/thumb.png
           retention-days: 14
           if-no-files-found: warn

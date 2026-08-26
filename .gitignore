@@ -1,9 +1,15 @@
-# 산출물 — 용량이 크고 재생성 가능. 원본은 data.json 입니다.
+# 산출물 — 재생성 가능한 것만 뺍니다.
+#
+# 기준이 '재생성 가능한가' 였는데, 그것만으로는 부족했습니다.
+# 블로그 이미지는 재생성이 되긴 하지만 **playwright 와 한글 폰트가 깔린 환경**이
+# 있어야 합니다. 손으로 발행하는 사람에게는 재생성 가능성이 의미가 없고,
+# 실제로 이미지가 저장소에도 Actions 산출물에도 없어서 어디서도 못 받는 상태였습니다.
+#
+# 그래서 기준을 하나 더 답니다 — **사람 손이 닿아야 하는 파일인가.**
+#   손으로 올린다  → 저장소에 둡니다 (images/ · thumb.png · brand/art)
+#   기계가 올린다  → 뺍니다 (video.mp4 — 유튜브로 자동 업로드됩니다)
 content/**/video.mp4
 content/**/cover.png
-content/**/thumb.png
-brand/art/*.png
-content/**/images/*.png
 assets/*.mp3
 assets/*.wav
 
