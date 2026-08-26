@@ -117,6 +117,39 @@ color:var(--ink-soft);text-align:right}
 .tbl2 td.c1{text-align:right;color:var(--ink-soft);font-weight:800}
 .tbl2 td.c2{text-align:right;color:var(--cat);font-weight:900}"""
 
+# ── 블로그 본문용 가로형 ────────────────────────────────────────────
+# 인스타 카드(1080×1350)를 블로그에 그대로 쓰던 것을 그만둡니다. 세 가지가 걸립니다.
+#   1) 세로로 너무 깁니다 — 네이버 본문 폭(966)에서 화면을 꽉 채우고 스크롤을 먹습니다
+#   2) '2 / 7' 페이지 표시와 '넘겨서 →' 가 들어 있습니다 — 캐러셀 장치입니다.
+#      블로그에는 넘길 것이 없는데 넘기라고 적혀 있었습니다
+#   3) 워터마크가 @machi_maza(인스타) 입니다 — 블로그는 @machimaza 입니다
+# 같은 내용을 1200×750 가로로 다시 그립니다. 글자는 폭이 넓어진 만큼 줄입니다.
+WIDE_CSS = """.wrap{width:1200px;height:750px;padding:92px 84px 52px}
+.brand{top:34px;left:38px;font-size:22px}
+.badge,.through{font-size:22px;padding:8px 18px}
+.body{padding-top:10px}
+.head{font-size:46px!important;line-height:1.25}
+.cv .head{font-size:52px!important}
+.kicker{font-size:28px;margin-bottom:10px}
+.big{font-size:88px!important;margin:12px 0}
+.sub2{margin-top:10px;font-size:26px}
+.desc{margin-top:16px;font-size:26px;line-height:1.5}
+.cv .desc{font-size:28px;margin-top:14px}
+.pts{margin-top:16px;padding-top:2px}
+.pt,.cv .pt{font-size:24px;padding:9px 2px;gap:14px}
+.pt span,.cv .pt span{min-width:190px}
+.voice,.cv .voice{font-size:24px;padding:14px 18px;border-radius:10px;margin-top:auto}
+.foot{font-size:18px;padding-top:14px;margin-top:14px}
+.li{font-size:32px;margin-bottom:12px;gap:14px}
+.note{margin-top:14px;font-size:22px;padding-left:14px}
+.lab2{font-size:22px;margin-bottom:4px}
+.v2{font-size:48px;margin-bottom:8px}
+.bar{height:14px}
+.cmp{gap:20px;margin-top:14px}
+.tbl2{font-size:26px}
+.tbl2 th{font-size:21px;padding:8px}
+.tbl2 td{padding:10px 8px}"""
+
 POST_CSS = """.ptbl{width:100%;border-collapse:collapse;font-size:38px;
 font-variant-numeric:tabular-nums;margin-top:8px}
 .ptbl th{padding:10px 12px;border-bottom:3px solid var(--ink);font-size:26px;
@@ -161,13 +194,37 @@ padding:18px 28px;border-radius:14px;text-align:center;word-break:keep-all}"""
 
 
 def shoot(pages, outdir, w, h):
+    """pages 는 (이름, html) 또는 (이름, html, 폭, 높이) 입니다.
+
+    가로형(블로그용)과 세로형(카드)을 한 번에 찍으려고 크기를 페이지마다 받습니다.
+    """
     from playwright.sync_api import sync_playwright
     outdir.mkdir(parents=True, exist_ok=True); out = []
     with sync_playwright() as p:
-        b = p.chromium.launch(); pg = b.new_page(viewport={"width":w,"height":h})
-        for name, html in pages:
+        b = p.chromium.launch()
+        for item in pages:
+            name, html = item[0], item[1]
+            pw, ph = (item[2], item[3]) if len(item) > 3 else (w, h)
+            pg = b.new_page(viewport={"width":pw,"height":ph})
             pg.set_content(html, wait_until="load"); pg.wait_for_timeout(120)
-            f = outdir/name; pg.screenshot(path=str(f), clip={"x":0,"y":0,"width":w,"height":h}); out.append(f)
+            # 넘치면 줄입니다. 가로형은 세로 공간이 750px 뿐이라 표가 길거나
+            # 항목이 많으면 아래가 잘립니다 — 브라우저는 잘린 것도 그냥 그립니다.
+            shrunk = pg.evaluate("""() => {
+              const w = document.querySelector('.wrap');
+              const b = document.querySelector('.body');
+              if (!w || !b) return 1;
+              let z = 1;
+              for (let i = 0; i < 14 && w.scrollHeight > w.clientHeight + 1; i++) {
+                z -= 0.035; b.style.zoom = z;
+              }
+              return Math.round(z * 100) / 100;
+            }""")
+            if shrunk < 1:
+                print(f"  [맞춤] {name} — 내용이 많아 {int(shrunk*100)}% 로 줄였습니다")
+            pg.wait_for_timeout(60)
+            f = outdir/name
+            pg.screenshot(path=str(f), clip={"x":0,"y":0,"width":pw,"height":ph})
+            pg.close(); out.append(f)
         b.close()
     return out
 
@@ -237,7 +294,7 @@ def build_images(d, base):
     _src1 = (d["sources"][0]["issuer"].split()[0] if d.get("sources") else "")
     _basis = m.get("basis") or f'{m["publish_date"][:4]}년 기준'
 
-    def shell(body, foot, step=None, voice=None, points=None, cover=False):
+    def shell(body, foot, step=None, voice=None, points=None, cover=False, wide=False):
         """카드는 소리가 없습니다. 영상이 음성으로 말하는 것을 글로 넣어야 합니다.
 
         예전 뼈대는 본문을 세로 가운데 정렬해서, 세 줄짜리 카드가 1350px 한가운데
@@ -246,23 +303,28 @@ def build_images(d, base):
         """
         th = (f"<div class='through'>{esc(m['throughline'])}</div>"
               if m.get("throughline") else "")
-        pg = f'<div class="step">{step}</div>' if step else ""
+        # 가로형(블로그)에는 페이지 표시를 넣지 않습니다 — 넘길 것이 없습니다.
+        pg = f'<div class="step">{step}</div>' if (step and not wide) else ""
         vo = f'<div class="voice">{esc(voice)}</div>' if voice else ""
         pts = ""
         if points:
             pts = '<div class="pts">' + "".join(
                 f'<div class="pt"><span>{esc(k)}</span><b>{esc(v)}</b></div>'
                 for k, v in points) + '</div>'
-        return page(CARD_CSS, m["category"], f'''<div class="brand">{handle("instagram")}</div>
+        css = CARD_CSS + ("\n" + WIDE_CSS if wide else "")
+        who = handle("tistory") if wide else handle("instagram")
+        return page(css, m["category"], f'''<div class="brand">{who}</div>
 <div class="wrap{' cv' if cover else ''}">
 <div class="top"><div class="badge">{esc(m["category"])}</div>{th}</div>
 {pg}<div class="body">{body}{pts}{vo}</div>
 <div class="foot">{esc(_basis)} · {esc(_src1)}<span class="fr">{foot}</span></div>
 </div>''', 1080, 1350)
 
-    def card_for(sc, idx, last):
+    def card_for(sc, idx, last, wide=False):
         # 마지막 장에는 핸들로 서명합니다 — 캐러셀 마지막 장이 캡처되는 자리입니다
-        ty, foot = sc["type"], (handle("instagram") if last else "넘겨서 →")
+        # 가로형에는 '넘겨서 →' 를 쓰지 않습니다 — 블로그에는 넘길 것이 없습니다.
+        ty = sc["type"]
+        foot = handle("tistory") if wide else (handle("instagram") if last else "넘겨서 →")
         step = f'{idx+1} / {len(scenes)}'
         voice = sc.get("voice")
         points = sc.get("points")
@@ -272,12 +334,12 @@ def build_images(d, base):
             # 넘길 이유를 주지 못합니다. 제목과 요점을 키웁니다.
             return shell(f'<div class="cover"><div class="head" '
                          f'style="font-size:{az(m["title"],104,1.1,64)}px">{esc(m["title"])}</div>'
-                         f'{cap}</div>', foot, step, voice, points, cover=True)
+                         f'{cap}</div>', foot, step, voice, points, cover=True, wide=wide)
         if ty == "fact":
             sub = f'<div class="sub2">{esc(sc["sub"])}</div>' if sc.get("sub") else ""
             return shell(f'<div class="kicker">{esc(sc["label"])}</div>'
                          f'<div class="big" style="font-size:{max(72, 128 - len(sc["big"]) * 5)}px">'
-                         f'{esc(sc["big"])}</div>{sub}{cap}', foot, step, voice, points)
+                         f'{esc(sc["big"])}</div>{sub}{cap}', foot, step, voice, points, wide=wide)
         if ty == "compare":
             b, a = sc["before"], sc["after"]
             nb = re.sub(r"[^\d]", "", b["value"]); na = re.sub(r"[^\d]", "", a["value"])
@@ -289,12 +351,12 @@ def build_images(d, base):
                 f'<div class="bar"><i style="width:100%;background:var(--line)"></i></div></div>'
                 f'<div><div class="lab2">{esc(a["label"])}</div>'
                 f'<div class="v2" style="color:var(--cat)">{esc(a["value"])}</div>'
-                f'<div class="bar"><i style="width:{r:.1f}%"></i></div></div></div>{cap}', foot, step, voice, points)
+                f'<div class="bar"><i style="width:{r:.1f}%"></i></div></div></div>{cap}', foot, step, voice, points, wide=wide)
         if ty == "list":
             lis = "".join(f'<div class="li"><b></b><span>{esc(x)}</span></div>' for x in sc["items"])
             note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
             return shell(f'<div class="head" style="font-size:56px">{esc(sc["label"])}</div>'
-                         f'<div style="margin-top:34px">{lis}</div>{note}{cap}', foot, step, voice, points)
+                         f'<div style="margin-top:34px">{lis}</div>{note}{cap}', foot, step, voice, points, wide=wide)
         if ty == "table":
             cols = sc.get("columns") or ["구간", "금액"]
             head = "".join(f"<th>{esc(c)}</th>" for c in cols)
@@ -316,14 +378,17 @@ def build_images(d, base):
                     + (f'<td>{esc(i.get("employed", i["value"]))}</td>' if len(cols) > 2 else "")
                     + f'<td>{esc(i["value"])}</td></tr>' for i in items)
             note = f'<div class="note">{esc(sc["note"])}</div>' if sc.get("note") else ""
-            return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot, step, voice, points)
+            return shell(f'<table class="tbl2"><tr>{head}</tr>{body}</table>{note}{cap}', foot, step, voice, points, wide=wide)
         raise ValueError(f"카드로 그릴 수 없는 장면 유형: {ty}")
 
     scenes = d.get("flow", {}).get("scenes")
-    pages = [("poster.png", poster)]
+    pages = [("poster.png", poster, 1080, 1350)]
     if scenes:
         for i, sc in enumerate(scenes):
-            pages.append((f"card_{i+1:02d}.png", card_for(sc, i, i == len(scenes) - 1)))
+            last = i == len(scenes) - 1
+            pages.append((f"card_{i+1:02d}.png", card_for(sc, i, last), 1080, 1350))
+            # 블로그 본문에 넣을 가로형. 같은 내용, 다른 판형입니다.
+            pages.append((f"fig_{i+1:02d}.png", card_for(sc, i, last, wide=True), 1200, 750))
     else:
         raise ValueError("data.json 에 flow.scenes 가 없습니다 — 카드를 items 로 찍던 방식은 폐기했습니다")
 
@@ -332,6 +397,7 @@ def build_images(d, base):
     for i, sc in enumerate(scenes):
         t = sc.get("label") or m["title"]
         alt.append(f'card_{i+1:02d}.png\t{t}. {sc.get("screen","")}')
+        alt.append(f'fig_{i+1:02d}.png\t{t}. {sc.get("screen","")}')
     (base/"images"/"alt.txt").write_text("\n".join(alt), encoding="utf-8")
     print(f"[images] {len(w)}장 + alt.txt")
     import motion

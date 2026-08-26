@@ -12,6 +12,12 @@ body{margin:0;background:#eef0f3;
 button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;
   border:1px solid #3b7a57;background:#3b7a57;color:#fff;cursor:pointer}
 #msg{margin-left:12px;font-weight:700;color:#3b7a57}
+.fields{max-width:860px;margin:14px auto 0;display:flex;gap:12px;flex-wrap:wrap}
+.fld{flex:1;min-width:260px;background:#fff;border:1px solid #dcdfe4;border-radius:10px;
+  padding:14px 16px;font-size:14px}
+.fld b{display:block;font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:700}
+.fld>div{font-weight:700;color:#111;line-height:1.6;word-break:keep-all}
+button.sm{margin-top:10px;padding:6px 12px;font-size:13px;background:#fff;color:#3b7a57}
 .sheet{max-width:860px;margin:18px auto 60px;background:#fff;border-radius:10px;
   padding:44px 48px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 /* 아래부터가 실제로 복사되는 부분입니다. 색을 쓰지 않습니다. */
@@ -42,7 +48,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
   background:#f7f7f7}
 #body .ph{border:2px dashed #999;background:#fafafa;padding:16px;text-align:center;
   font-weight:800;margin:18px 0}
-</style></head><body><div class="guide"><b>네이버 블로그에 붙여넣는 법</b><ol><li>아래 <b>본문 복사</b> 를 누릅니다 (안 되면 본문만 드래그해서 Ctrl+C).</li><li>스마트에디터 본문에 <b>그대로 붙여넣습니다.</b> 제목·굵게·목록·표가 따라옵니다.</li><li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: poster.png → card_02.png → card_04.png → card_05.png → card_07.png</li><li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol><button onclick="pick()">본문 복사</button><span id="msg"></span></div><div class="sheet"><div id="body"><p class="lead"><strong>577,500원</strong>.</p><p><br></p><p>단독가구가 받을 수 있는 최대금액을 꽉 채워도, 올해 12월 30일에 통장에 들어오는 돈은 이 정도입니다. 최대금액이 165만원인데 왜 이 금액일까요. 9월에 하는 신청이 정기신청과 다른 물건이기 때문입니다.</p><p><br></p>
+</style></head><body><div class="guide"><b>네이버 블로그에 붙여넣는 법</b><ol><li>아래 <b>본문 복사</b> 를 누릅니다 (안 되면 본문만 드래그해서 Ctrl+C).</li><li>스마트에디터 본문에 <b>그대로 붙여넣습니다.</b> 제목·굵게·목록·표가 따라옵니다.</li><li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: poster.png → fig_02.png → fig_04.png → fig_05.png → fig_07.png</li><li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol><button onclick="pick()">본문 복사</button><span id="msg"></span></div><div class="fields"><div class="fld"><b>제목 — 에디터 제목 칸에</b><div id="ttl">근로장려금 9월 신청 얼마 받나요</div><button class="sm" onclick="grab('ttl','제목을')">복사</button></div><div class="fld"><b>태그 — 발행 창 태그 칸에</b><div id="tag">근로장려금 반기신청, 근로장려금 9월 신청, 근로장려금 얼마 받나, 근로장려금 지급일, 근로장려금 재산요건</div><button class="sm" onclick="grab('tag','태그를')">복사</button></div></div><div class="sheet"><div id="body"><p class="lead"><strong>577,500원</strong>.</p><p><br></p><p>단독가구가 받을 수 있는 최대금액을 꽉 채워도, 올해 12월 30일에 통장에 들어오는 돈은 이 정도입니다. 최대금액이 165만원인데 왜 이 금액일까요. 9월에 하는 신청이 정기신청과 다른 물건이기 때문입니다.</p><p><br></p>
 <p>9월 1일부터 15일까지 받는 것은 <strong>반기신청</strong>입니다. 1년치를 한 번에 주는 제도가 아닙니다. 상반기에 번 돈으로 1년치를 미리 계산합니다. 그중 일부를 먼저 주고, 나머지는 내년에 맞춰봅니다. 이 구조를 모르면 12월 입금액을 보고 당황하게 됩니다.</p><p><br></p>
 <p class="ph">▲ 여기에 poster.png 를 올리세요 · 대체텍스트: 근로장려금 반기신청 2026년 9월 기준 정리</p><p><br></p>
 <p>이 글은 국세청 안내와 조세특례제한법 원문을 직접 열어 확인한 내용만 담았습니다. 확인일은 2026년 8월 25일이고, 원문 주소는 맨 아래에 있습니다.</p><p><br></p>
@@ -82,7 +88,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>차이가 하나 더 있습니다. 반기신청은 <strong>올해 근로소득만 있는 사람</strong>만 할 수 있습니다. 사업소득이 조금이라도 섞이면 어떻게 될까요. 신청은 접수됩니다. 다만 5월에 정기신청한 것으로 처리됩니다. 돈은 2027년 9월에야 나옵니다. 배달이나 프리랜서 일을 병행하셨다면 여기부터 보셔야 합니다.</p><p><br></p>
 <p><br></p><p><br></p><hr><p><br></p><h2><span class="no">2.</span>내 가구는 어디인가</h2><p><br></p>
 <p>금액을 보기 전에 본인이 어느 가구인지부터 정해야 합니다. 세 가지뿐이고, 기준은 배우자의 소득과 부양가족의 유무입니다.</p><p><br></p>
-<p class="ph">▲ 여기에 card_02.png 를 올리세요 · 대체텍스트: 가구 형태별 근로장려금 총소득 기준과 최대금액</p><p><br></p>
+<p class="ph">▲ 여기에 fig_02.png 를 올리세요 · 대체텍스트: 가구 형태별 근로장려금 총소득 기준과 최대금액</p><p><br></p>
 <ul>
 <li><strong>단독가구</strong> — 배우자도, 18세 미만 부양자녀도, 70세 이상 직계존속도 없는 가구입니다.</li>
 <li><strong>홑벌이가구</strong> — 배우자의 총급여액 등이 300만원 미만인 경우입니다. 배우자가 아예 없어도 18세 미만 자녀나 70세 이상 부모를 부양하면 여기 들어갑니다. 이때 부양가족은 연간 소득금액이 100만원 이하이고 주민등록상 함께 살아야 합니다.</li>
@@ -123,7 +129,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 </table><p><br></p>
 <p>구간보다 <strong>적게 벌면 오히려 줄어듭니다</strong>. 단독가구를 봅시다. 총급여액 등이 400만원 미만이면 <code>총급여액 등 × 165/400</code> 으로 계산합니다. 300만원을 벌었다면 165만원이 아닙니다. 그 4분의 3 수준입니다. 이 제도의 이름이 근로장려금입니다. 일한 만큼 늘어나는 구간을 앞에 둔 이유입니다.</p><p><br></p>
 <p>구간을 넘어도 줄어듭니다. 단독가구는 900만원부터 깎입니다. 그러다 2,200만원에서 0이 됩니다. 홑벌이는 1,400만원부터 깎여 3,200만원에서 사라집니다. 맞벌이는 1,700만원부터 깎여 4,400만원에서 사라집니다.</p><p><br></p>
-<p class="ph">▲ 여기에 card_04.png 를 올리세요 · 대체텍스트: 근로장려금 최대금액이 나오는 총급여액 구간</p><p><br></p>
+<p class="ph">▲ 여기에 fig_04.png 를 올리세요 · 대체텍스트: 근로장려금 최대금액이 나오는 총급여액 구간</p><p><br></p>
 <p>"얼마 받나요"의 정직한 답은 금액 하나가 아닙니다. <strong>본인 총급여액 등이 어느 칸에 있느냐</strong>입니다. 표에서 본인 줄부터 찾으세요.</p><p><br></p>
 <p><br></p><p><br></p><hr><p><br></p><h2><span class="no">4.</span>12월에 들어오는 돈은 35%입니다</h2><p><br></p>
 <p>가구도 정했고 구간도 확인했다면, 이제 실제로 언제 얼마가 들어오는지가 남습니다.</p><p><br></p>
@@ -159,7 +165,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>1년치를 계산하는 방식도 정해져 있습니다. 상반기 근로소득을 근무한 달수로 나눕니다. 거기에 근무월수와 6을 더한 값을 곱합니다. 넉 달만 일했다면 어떻게 될까요. 그 넉 달치 평균으로 열 달치를 추정합니다.</p><p><br></p>
 <p><br></p><p><br></p><hr><p><br></p><h2><span class="no">5.</span>재산이 1억 7천만원을 넘으면 절반</h2><p><br></p>
 <p>소득 요건을 통과해도 재산에서 걸리는 경우가 많습니다. 기준선이 두 개라는 점을 놓치기 쉽습니다.</p><p><br></p>
-<p class="ph">▲ 여기에 card_05.png 를 올리세요 · 대체텍스트: 근로장려금 재산 요건 두 개의 기준선</p><p><br></p>
+<p class="ph">▲ 여기에 fig_05.png 를 올리세요 · 대체텍스트: 근로장려금 재산 요건 두 개의 기준선</p><p><br></p>
 <ul>
 <li><strong>2억 4천만원 미만</strong> — 이 선을 넘으면 아예 신청 자격이 없습니다.</li>
 <li><strong>1억 7천만원 이상</strong> — 자격은 있지만 계산된 금액의 <strong>50%만</strong> 나옵니다.</li>
@@ -187,7 +193,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>허위로 신청하면 돌려주는 것으로 끝나지 않습니다. 하루 10만분의 22의 가산세가 붙습니다. 고의나 중대한 과실이면 2년간 지급이 제한됩니다. 사기나 부정한 방법이면 5년입니다.</p><p><br></p>
 <p>편한 점도 있습니다. <strong>상반기분을 신청하면 하반기분도 신청한 것으로 봅니다</strong>. 내년 3월에 다시 신청하지 않아도 됩니다. 조세특례제한법 제100조의6 제9항입니다.</p><p><br></p>
 <p>다만 상반기 지급 때는 근로장려금만 나옵니다. 자녀장려금은 하반기 정산 때 함께 나옵니다.</p><p><br></p>
-<p class="ph">▲ 여기에 card_07.png 를 올리세요 · 대체텍스트: 근로장려금 반기신청 판단 요약</p><p><br></p>
+<p class="ph">▲ 여기에 fig_07.png 를 올리세요 · 대체텍스트: 근로장려금 반기신청 판단 요약</p><p><br></p>
 <p><br></p><p><br></p><hr><p><br></p><h2><span class="no">8.</span>신청 전에 정리하고 갈 것</h2><p><br></p>
 <p>여기까지가 금액과 기한입니다. 아래는 신청 화면을 열기 전에 한 번씩 짚고 갈 내용입니다.</p><p><br></p>
 <p><br></p><h3>정기신청과 반기신청 중 무엇이 유리한가</h3><p><br></p>
@@ -304,6 +310,16 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>기준 법령은 법률 제21223호(2025년 12월 23일 일부개정, 2026년 1월 1일 시행)입니다.</p><p><br></p>
 <p>이 글은 일반적인 정보 제공을 목적으로 합니다. 지원 대상과 금액은 지자체·연도에 따라 다르며, 신청 전 담당 기관에 확인하시기 바랍니다. 개인의 상태에 따라 다를 수 있습니다.</p><p><br></p>
 <p><em>— 마치마자 · 정부·공공기관 원문을 직접 확인해 정리하며, 제도 개정 시 갱신합니다.</em></p><p><br></p></div></div><script>
+function grab(id, label){
+  const el = document.getElementById(id);
+  const r = document.createRange(); r.selectNodeContents(el);
+  const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  s.removeAllRanges();
+  document.getElementById('msg').textContent =
+    ok ? label + ' 복사했습니다.' : label + ' 직접 드래그해서 Ctrl+C 하세요.';
+}
 function pick(){
   const el = document.getElementById('body');
   const r = document.createRange(); r.selectNodeContents(el);

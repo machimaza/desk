@@ -239,7 +239,10 @@ def main(base):
             bg = np.bincount(a.ravel()).argmax()
             return float((np.abs(a.astype(int) - int(bg)) > 12).mean() * 100)
 
-        cards = sorted((base / "images").glob("card_*.png"))
+        # 카드(세로·인스타)와 그림(가로·블로그) 둘 다 봅니다.
+        # 블로그가 카드를 그대로 쓰던 시절에는 한 벌뿐이었습니다.
+        cards = sorted((base / "images").glob("card_*.png")) \
+            + sorted((base / "images").glob("fig_*.png"))
         if cards:
             vals = [(c.name, _ink(c)) for c in cards]
             thin = [n for n, v in vals if v < 5.0]

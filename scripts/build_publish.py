@@ -96,6 +96,12 @@ body{margin:0;background:#eef0f3;
 button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;
   border:1px solid #3b7a57;background:#3b7a57;color:#fff;cursor:pointer}
 #msg{margin-left:12px;font-weight:700;color:#3b7a57}
+.fields{max-width:860px;margin:14px auto 0;display:flex;gap:12px;flex-wrap:wrap}
+.fld{flex:1;min-width:260px;background:#fff;border:1px solid #dcdfe4;border-radius:10px;
+  padding:14px 16px;font-size:14px}
+.fld b{display:block;font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:700}
+.fld>div{font-weight:700;color:#111;line-height:1.6;word-break:keep-all}
+button.sm{margin-top:10px;padding:6px 12px;font-size:13px;background:#fff;color:#3b7a57}
 .sheet{max-width:860px;margin:18px auto 60px;background:#fff;border-radius:10px;
   padding:44px 48px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 /* 아래부터가 실제로 복사되는 부분입니다. 색을 쓰지 않습니다. */
@@ -129,6 +135,16 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 """
 
 NAVER_JS = """
+function grab(id, label){
+  const el = document.getElementById(id);
+  const r = document.createRange(); r.selectNodeContents(el);
+  const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  s.removeAllRanges();
+  document.getElementById('msg').textContent =
+    ok ? label + ' 복사했습니다.' : label + ' 직접 드래그해서 Ctrl+C 하세요.';
+}
 function pick(){
   const el = document.getElementById('body');
   const r = document.createRange(); r.selectNodeContents(el);
@@ -176,7 +192,7 @@ def naver_rhythm(html):
     return html
 
 
-def md_to_naver_html(md, title, imgs):
+def md_to_naver_html(md, title, imgs, tags):
     import markdown
     html = markdown.markdown(md, extensions=["tables", "fenced_code"])
     html = re.sub(r'<p><img alt="([^"]*)" src="images/([^"]+)"\s*/?></p>',
@@ -193,6 +209,9 @@ def md_to_naver_html(md, title, imgs):
     # 이미지 목록은 <li> 로 넣으면 안내 번호(1·2·3)에 이어 붙어 4·5·6 이 됩니다.
     # 안내 단계가 여덟 개인 것처럼 보였습니다. 한 줄 안에 나열합니다.
     steps = " → ".join(imgs)
+    # 제목은 본문에 넣지 않습니다 — 에디터에 제목 칸이 따로 있고,
+    # 본문에 또 넣으면 같은 제목이 두 번 나옵니다. 대신 여기서 복사만 하게 둡니다.
+    tagline = ", ".join(tags)
     return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>{title} — 네이버 붙여넣기용</title><style>{NAVER_CSS}</style></head><body>'
@@ -202,6 +221,11 @@ def md_to_naver_html(md, title, imgs):
             f'<li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: {steps or "없음"}</li>'
             f'<li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol>'
             f'<button onclick="pick()">본문 복사</button><span id="msg"></span></div>'
+            f'<div class="fields">'
+            f'<div class="fld"><b>제목 — 에디터 제목 칸에</b><div id="ttl">{title}</div>'
+            f'''<button class="sm" onclick="grab('ttl','제목을')">복사</button></div>'''
+            f'<div class="fld"><b>태그 — 발행 창 태그 칸에</b><div id="tag">{tagline}</div>'
+            f'''<button class="sm" onclick="grab('tag','태그를')">복사</button></div></div>'''
             f'<div class="sheet"><div id="body">{html}</div></div>'
             f'<script>{NAVER_JS}</script></body></html>')
 
@@ -220,7 +244,8 @@ def build(base):
 
     imgs = re.findall(r'!\[[^\]]*\]\(images/([^)]+)\)', md)
     (out / "naver.html").write_text(
-        md_to_naver_html(body, m["title"], imgs), encoding="utf-8")
+        md_to_naver_html(body, m["title"], imgs, m.get("keywords", [])),
+        encoding="utf-8")
     cards = sorted(x.name for x in (base / "images").glob("card_*.png"))
     (out / "images.txt").write_text(
         "[블로그] 본문에 나오는 순서입니다. 에디터에서 이 순서대로 올리세요.\n"
