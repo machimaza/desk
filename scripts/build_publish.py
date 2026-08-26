@@ -99,11 +99,14 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 .sheet{max-width:860px;margin:18px auto 60px;background:#fff;border-radius:10px;
   padding:44px 48px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 /* 아래부터가 실제로 복사되는 부분입니다. 색을 쓰지 않습니다. */
-#body{font-size:16px}
-#body h2{font-size:21px;font-weight:800;margin:34px 0 12px;padding-top:14px;
-  border-top:2px solid #222}
-#body h3{font-size:18px;font-weight:800;margin:24px 0 8px}
-#body p{margin:0 0 16px}
+/* 네이버 본문에 가깝게 — 15px · 줄간격 1.8. 보이는 것과 붙은 것이 다르면
+   여기서 아무리 예뻐도 소용이 없습니다. */
+#body{font-size:15px;line-height:1.8}
+#body h2{font-size:19px;font-weight:800;margin:0}
+#body h3{font-size:17px;font-weight:800;margin:0}
+#body p{margin:0}
+#body p:empty,#body p br:only-child{line-height:1.2}
+#body hr{border:0;border-top:1px solid #bbb;margin:0}
 #body ul,#body ol{margin:0 0 16px;padding-left:22px}
 #body li{margin:6px 0}
 #body strong{font-weight:800}
@@ -131,11 +134,37 @@ function pick(){
 """
 
 
+def naver_rhythm(html):
+    """네이버에 붙였을 때 **숨 쉴 자리**를 만듭니다.
+
+    실제로 붙여넣어 보니 표·굵게·목록은 살아남는데 **여백이 전부 죽었습니다.**
+    네이버가 붙여넣은 것을 자기 본문 스타일로 정규화하면서 line-height 와
+    margin 을 자기 값으로 덮기 때문입니다. 그래서 글이 빽빽하게 붙어 나옵니다.
+
+    CSS 로는 못 이깁니다. 대신 **빈 문단을 실제로 끼워 넣습니다** —
+    빈 문단은 스타일이 아니라 내용이라서 정규화를 통과합니다.
+    소제목 앞은 두 줄, 문단 사이는 한 줄입니다.
+    """
+    EMPTY = "<p><br></p>"
+    # 블록이 끝날 때마다 한 줄 비웁니다.
+    html = re.sub(r"(</(?:p|table|ul|ol|blockquote)>)", r"\1" + EMPTY, html)
+    # 소제목 앞뒤로 한 줄씩 더. 앞 문단에 붙어 있으면 소제목으로 안 읽힙니다.
+    # 앞에는 구분선도 넣습니다 — 네이버가 글자 크기를 자기 값으로 덮어도
+    # 선은 남아서 '여기서 이야기가 바뀐다' 가 보입니다.
+    html = re.sub(r"<h2>", EMPTY + "<hr>" + EMPTY + "<h2>", html)
+    html = re.sub(r"<h3>", EMPTY + "<h3>", html)
+    html = re.sub(r"(</h[23]>)", r"\1" + EMPTY, html)
+    # 자리표시 상자 뒤에 두 번 들어간 빈 줄은 하나로 줄입니다.
+    html = html.replace(EMPTY + EMPTY + EMPTY, EMPTY + EMPTY)
+    return html
+
+
 def md_to_naver_html(md, title, imgs):
     import markdown
     html = markdown.markdown(md, extensions=["tables", "fenced_code"])
     html = re.sub(r'<p><img alt="([^"]*)" src="images/([^"]+)"\s*/?></p>',
                   r'<p class="ph">▲ 여기에 \2 를 올리세요 · 대체텍스트: \1</p>', html)
+    html = naver_rhythm(html)
     # 이미지 목록은 <li> 로 넣으면 안내 번호(1·2·3)에 이어 붙어 4·5·6 이 됩니다.
     # 안내 단계가 여덟 개인 것처럼 보였습니다. 한 줄 안에 나열합니다.
     steps = " → ".join(imgs)
