@@ -106,7 +106,15 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 #body h3{font-size:17px;font-weight:800;margin:0}
 #body p{margin:0}
 #body p:empty,#body p br:only-child{line-height:1.2}
-#body hr{border:0;border-top:1px solid #bbb;margin:0}
+#body hr{border:0;border-top:1px solid #ccc;margin:0}
+/* 상세페이지에서 가져온 것 — 리드는 가운데, 소제목엔 번호, 인용은 가운데.
+   본문은 왼쪽 정렬 그대로 둡니다. 정보 글에서 가운데 정렬은 눈이 줄 시작을
+   매번 찾아야 해서 오히려 느려집니다. */
+#body .lead{text-align:center;font-size:17px;line-height:1.9;font-weight:700}
+#body .no{display:inline-block;margin-right:8px;font-weight:900}
+#body .pull{text-align:center;border:0;background:none;
+  font-size:17px;font-weight:700;line-height:1.9;padding:0}
+#body .pull p{margin:0}
 #body ul,#body ol{margin:0 0 16px;padding-left:22px}
 #body li{margin:6px 0}
 #body strong{font-weight:800}
@@ -146,16 +154,25 @@ def naver_rhythm(html):
     소제목 앞은 두 줄, 문단 사이는 한 줄입니다.
     """
     EMPTY = "<p><br></p>"
+    # 소제목에 번호를 붙입니다 — 상세페이지에서 가져온 것 중 가장 값싼 장치입니다.
+    # '1. · 2. · 3.' 이 붙으면 글이 몇 덩어리인지 눈으로 세집니다.
+    n = [0]
+
+    def _num(mo):
+        n[0] += 1
+        return f'<h2><span class="no">{n[0]}.</span>{mo.group(1)}</h2>'
+
+    html = re.sub(r"<h2>(.*?)</h2>", _num, html, flags=re.S)
     # 블록이 끝날 때마다 한 줄 비웁니다.
     html = re.sub(r"(</(?:p|table|ul|ol|blockquote)>)", r"\1" + EMPTY, html)
-    # 소제목 앞뒤로 한 줄씩 더. 앞 문단에 붙어 있으면 소제목으로 안 읽힙니다.
-    # 앞에는 구분선도 넣습니다 — 네이버가 글자 크기를 자기 값으로 덮어도
-    # 선은 남아서 '여기서 이야기가 바뀐다' 가 보입니다.
-    html = re.sub(r"<h2>", EMPTY + "<hr>" + EMPTY + "<h2>", html)
+    # 소제목 앞은 세 줄. 상세페이지의 '섹션이 바뀐다' 는 느낌은 대부분 여백이 만듭니다.
+    # 앞에 구분선도 둡니다 — 네이버가 글자 크기를 덮어도 선은 남습니다.
+    html = re.sub(r"<h2>", EMPTY * 2 + "<hr>" + EMPTY + "<h2>", html)
     html = re.sub(r"<h3>", EMPTY + "<h3>", html)
     html = re.sub(r"(</h[23]>)", r"\1" + EMPTY, html)
-    # 자리표시 상자 뒤에 두 번 들어간 빈 줄은 하나로 줄입니다.
-    html = html.replace(EMPTY + EMPTY + EMPTY, EMPTY + EMPTY)
+    # 인용은 가운데로. 한 편에 두세 번만 나오므로 여기서 호흡이 끊깁니다.
+    html = html.replace("<blockquote>", '<blockquote class="pull">')
+    html = html.replace(EMPTY + EMPTY + EMPTY + EMPTY, EMPTY + EMPTY + EMPTY)
     return html
 
 
@@ -164,6 +181,14 @@ def md_to_naver_html(md, title, imgs):
     html = markdown.markdown(md, extensions=["tables", "fenced_code"])
     html = re.sub(r'<p><img alt="([^"]*)" src="images/([^"]+)"\s*/?></p>',
                   r'<p class="ph">▲ 여기에 \2 를 올리세요 · 대체텍스트: \1</p>', html)
+    # 첫 문단의 **첫 문장만** 리드로 세웁니다.
+    # 문단 전체를 가운데 정렬해 봤더니 네 줄이 폭을 꽉 채워서 가운데인지 티가
+    # 안 났습니다. 상세페이지의 리드가 눈에 들어오는 이유는 정렬이 아니라
+    # **짧아서**입니다. 첫 문장만 떼고 나머지는 보통 문단으로 둡니다.
+    mo = re.match(r"<p>(.+?[.!?])\s+(.*?)</p>", html, flags=re.S)
+    if mo:
+        html = (f'<p class="lead">{mo.group(1)}</p><p>{mo.group(2)}</p>'
+                + html[mo.end():])
     html = naver_rhythm(html)
     # 이미지 목록은 <li> 로 넣으면 안내 번호(1·2·3)에 이어 붙어 4·5·6 이 됩니다.
     # 안내 단계가 여덟 개인 것처럼 보였습니다. 한 줄 안에 나열합니다.

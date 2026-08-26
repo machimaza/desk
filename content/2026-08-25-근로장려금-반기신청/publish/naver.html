@@ -22,7 +22,15 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 #body h3{font-size:17px;font-weight:800;margin:0}
 #body p{margin:0}
 #body p:empty,#body p br:only-child{line-height:1.2}
-#body hr{border:0;border-top:1px solid #bbb;margin:0}
+#body hr{border:0;border-top:1px solid #ccc;margin:0}
+/* 상세페이지에서 가져온 것 — 리드는 가운데, 소제목엔 번호, 인용은 가운데.
+   본문은 왼쪽 정렬 그대로 둡니다. 정보 글에서 가운데 정렬은 눈이 줄 시작을
+   매번 찾아야 해서 오히려 느려집니다. */
+#body .lead{text-align:center;font-size:17px;line-height:1.9;font-weight:700}
+#body .no{display:inline-block;margin-right:8px;font-weight:900}
+#body .pull{text-align:center;border:0;background:none;
+  font-size:17px;font-weight:700;line-height:1.9;padding:0}
+#body .pull p{margin:0}
 #body ul,#body ol{margin:0 0 16px;padding-left:22px}
 #body li{margin:6px 0}
 #body strong{font-weight:800}
@@ -34,11 +42,11 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
   background:#f7f7f7}
 #body .ph{border:2px dashed #999;background:#fafafa;padding:16px;text-align:center;
   font-weight:800;margin:18px 0}
-</style></head><body><div class="guide"><b>네이버 블로그에 붙여넣는 법</b><ol><li>아래 <b>본문 복사</b> 를 누릅니다 (안 되면 본문만 드래그해서 Ctrl+C).</li><li>스마트에디터 본문에 <b>그대로 붙여넣습니다.</b> 제목·굵게·목록·표가 따라옵니다.</li><li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: poster.png → card_02.png → card_04.png → card_05.png → card_07.png</li><li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol><button onclick="pick()">본문 복사</button><span id="msg"></span></div><div class="sheet"><div id="body"><p><strong>577,500원</strong>. 단독가구가 받을 수 있는 최대금액을 꽉 채워도, 올해 12월 30일에 통장에 들어오는 돈은 이 정도입니다. 최대금액이 165만원인데 왜 이 금액일까요. 9월에 하는 신청이 정기신청과 다른 물건이기 때문입니다.</p><p><br></p>
+</style></head><body><div class="guide"><b>네이버 블로그에 붙여넣는 법</b><ol><li>아래 <b>본문 복사</b> 를 누릅니다 (안 되면 본문만 드래그해서 Ctrl+C).</li><li>스마트에디터 본문에 <b>그대로 붙여넣습니다.</b> 제목·굵게·목록·표가 따라옵니다.</li><li>점선 상자 자리에 이미지를 올리고 상자는 지웁니다 — 순서: poster.png → card_02.png → card_04.png → card_05.png → card_07.png</li><li>글꼴과 색은 네이버가 자기 기본값으로 바꿉니다. 그대로 두시면 됩니다.</li></ol><button onclick="pick()">본문 복사</button><span id="msg"></span></div><div class="sheet"><div id="body"><p class="lead"><strong>577,500원</strong>.</p><p><br></p><p>단독가구가 받을 수 있는 최대금액을 꽉 채워도, 올해 12월 30일에 통장에 들어오는 돈은 이 정도입니다. 최대금액이 165만원인데 왜 이 금액일까요. 9월에 하는 신청이 정기신청과 다른 물건이기 때문입니다.</p><p><br></p>
 <p>9월 1일부터 15일까지 받는 것은 <strong>반기신청</strong>입니다. 1년치를 한 번에 주는 제도가 아닙니다. 상반기에 번 돈으로 1년치를 미리 계산합니다. 그중 일부를 먼저 주고, 나머지는 내년에 맞춰봅니다. 이 구조를 모르면 12월 입금액을 보고 당황하게 됩니다.</p><p><br></p>
 <p class="ph">▲ 여기에 poster.png 를 올리세요 · 대체텍스트: 근로장려금 반기신청 2026년 9월 기준 정리</p><p><br></p>
 <p>이 글은 국세청 안내와 조세특례제한법 원문을 직접 열어 확인한 내용만 담았습니다. 확인일은 2026년 8월 25일이고, 원문 주소는 맨 아래에 있습니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>9월 신청은 정기신청과 무엇이 다른가</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">1.</span>9월 신청은 정기신청과 무엇이 다른가</h2><p><br></p>
 <p>근로장려금을 신청하는 길은 두 갈래입니다.</p><p><br></p>
 <table>
 <thead>
@@ -72,7 +80,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 </table><p><br></p>
 <p>정기신청은 이미 끝난 해를 봅니다. 그래서 금액이 확정됩니다. 반기신청은 아직 끝나지 않은 해를 다룹니다. <strong>먼저 주고 나중에 맞춰보는</strong> 수밖에 없습니다. 9월 신청분에 35%가 붙는 이유입니다.</p><p><br></p>
 <p>차이가 하나 더 있습니다. 반기신청은 <strong>올해 근로소득만 있는 사람</strong>만 할 수 있습니다. 사업소득이 조금이라도 섞이면 어떻게 될까요. 신청은 접수됩니다. 다만 5월에 정기신청한 것으로 처리됩니다. 돈은 2027년 9월에야 나옵니다. 배달이나 프리랜서 일을 병행하셨다면 여기부터 보셔야 합니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>내 가구는 어디인가</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">2.</span>내 가구는 어디인가</h2><p><br></p>
 <p>금액을 보기 전에 본인이 어느 가구인지부터 정해야 합니다. 세 가지뿐이고, 기준은 배우자의 소득과 부양가족의 유무입니다.</p><p><br></p>
 <p class="ph">▲ 여기에 card_02.png 를 올리세요 · 대체텍스트: 가구 형태별 근로장려금 총소득 기준과 최대금액</p><p><br></p>
 <ul>
@@ -81,7 +89,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <li><strong>맞벌이가구</strong> — 본인과 배우자 <strong>각각의</strong> 총급여액 등이 300만원 이상인 경우입니다. 합쳐서 300만원이 아니라 각각입니다.</li>
 </ul><p><br></p>
 <p>배우자가 있는데도 그쪽 소득이 300만원에 못 미치면 맞벌이가 아니라 홑벌이입니다. 홑벌이와 맞벌이는 기준금액도 최대금액도 다르기 때문에, 여기서 잘못 짚으면 이후 계산이 전부 어긋납니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>최대금액에는 구간이 있습니다</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">3.</span>최대금액에는 구간이 있습니다</h2><p><br></p>
 <p>여기가 이 글에서 가장 중요한 부분입니다. 검색해서 나오는 글은 대부분 "최대 165만원", "최대 330만원"까지만 적고 끝냅니다. 그런데 조세특례제한법 제100조의5를 열어보면, <strong>그 최대금액이 나오는 구간이 따로 정해져 있습니다</strong>.</p><p><br></p>
 <table>
 <thead>
@@ -117,7 +125,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>구간을 넘어도 줄어듭니다. 단독가구는 900만원부터 깎입니다. 그러다 2,200만원에서 0이 됩니다. 홑벌이는 1,400만원부터 깎여 3,200만원에서 사라집니다. 맞벌이는 1,700만원부터 깎여 4,400만원에서 사라집니다.</p><p><br></p>
 <p class="ph">▲ 여기에 card_04.png 를 올리세요 · 대체텍스트: 근로장려금 최대금액이 나오는 총급여액 구간</p><p><br></p>
 <p>"얼마 받나요"의 정직한 답은 금액 하나가 아닙니다. <strong>본인 총급여액 등이 어느 칸에 있느냐</strong>입니다. 표에서 본인 줄부터 찾으세요.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>12월에 들어오는 돈은 35%입니다</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">4.</span>12월에 들어오는 돈은 35%입니다</h2><p><br></p>
 <p>가구도 정했고 구간도 확인했다면, 이제 실제로 언제 얼마가 들어오는지가 남습니다.</p><p><br></p>
 <p>상반기분 지급기한은 <strong>2026년 12월 30일</strong>입니다. 지급액은 <strong>1년치로 계산한 금액의 35%</strong> 입니다. 조세특례제한법 제100조의5 제2항이 정한 비율입니다.</p><p><br></p>
 <table>
@@ -149,7 +157,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>나머지는 없어진 것이 아닙니다. <strong>2027년 6월 30일</strong>까지 하반기분을 지급하면서 그때 정산(더 낼 수도, 돌려받을 수도 있음)합니다. 이 정산이 반기신청에서 가장 오해가 많은 대목입니다.</p><p><br></p>
 <p>상반기분은 <strong>작년(2025년) 요건</strong>으로 판단해 먼저 줍니다. 그리고 2027년 6월에 <strong>올해(2026년) 요건</strong>으로 다시 계산합니다. 올해 소득이 늘었다면 어떻게 될까요. 재산이 불었다면요. 그때 <strong>환수</strong>될 수 있습니다. 12월에 들어온 돈을 확정된 내 돈으로 여기지 않는 편이 안전합니다.</p><p><br></p>
 <p>1년치를 계산하는 방식도 정해져 있습니다. 상반기 근로소득을 근무한 달수로 나눕니다. 거기에 근무월수와 6을 더한 값을 곱합니다. 넉 달만 일했다면 어떻게 될까요. 그 넉 달치 평균으로 열 달치를 추정합니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>재산이 1억 7천만원을 넘으면 절반</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">5.</span>재산이 1억 7천만원을 넘으면 절반</h2><p><br></p>
 <p>소득 요건을 통과해도 재산에서 걸리는 경우가 많습니다. 기준선이 두 개라는 점을 놓치기 쉽습니다.</p><p><br></p>
 <p class="ph">▲ 여기에 card_05.png 를 올리세요 · 대체텍스트: 근로장려금 재산 요건 두 개의 기준선</p><p><br></p>
 <ul>
@@ -161,7 +169,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>첫째, <strong>빚은 빼주지 않습니다</strong>. 대출을 끼고 산 집도 시가표준액 전체가 잡힙니다.</p><p><br></p>
 <p>둘째, <strong>전세보증금도 재산입니다</strong>. 주택은 두 값 중 작은 쪽으로 봅니다. 기준시가의 55%로 계산한 간주전세금과 실제 보증금입니다.</p><p><br></p>
 <p>셋째, 판단 시점은 <strong>작년 6월 1일</strong>입니다. 올해 재산이 줄었어도 상반기분 심사에는 반영되지 않습니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>신청하는 네 가지 경로</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">6.</span>신청하는 네 가지 경로</h2><p><br></p>
 <p>신청 자체는 어렵지 않습니다. 서비스 이용시간은 06시부터 24시까지입니다.</p><p><br></p>
 <ol>
 <li><strong>홈택스(모바일·PC)</strong> — 로그인합니다. 장려금·연말정산·전자기부금 메뉴로 갑니다. 근로·자녀장려금을 고르고 신청하기를 누릅니다.</li>
@@ -172,7 +180,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p><strong>안내문을 못 받았어도 신청할 수 있습니다</strong>. 안내문은 자격의 근거가 아닙니다. 국세청이 자료를 보고 대상 같다고 알려주는 것입니다. 홈택스에서 로그인한 뒤 직접입력신청으로 들어가면 됩니다.</p><p><br></p>
 <p>반대도 마찬가지입니다. 안내문을 받았다고 지급이 확정되지는 않습니다. 요건은 심사에서 다시 봅니다.</p><p><br></p>
 <p>신청기간에 자동신청에 미리 동의해두면 이후 2년간 안내 대상이 될 때 자동으로 신청됩니다. 다만 요건을 충족하지 않으면 자동신청도 되지 않습니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>9월 15일을 놓치면</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">7.</span>9월 15일을 놓치면</h2><p><br></p>
 <p>기한이 지나도 길이 아주 막히는 것은 아닙니다. 다만 손해가 생깁니다.</p><p><br></p>
 <p>기한 후 신청은 2026년 6월 2일부터 12월 1일까지 열려 있습니다. 이때 신청하면 <strong>금액의 95%만</strong> 나옵니다. 5%는 늦은 대가입니다. 금액이 클수록 손해도 커집니다.</p><p><br></p>
 <p>체납액이 있다면 환급금의 <strong>30%를 한도로</strong> 체납액에 충당됩니다. 전액이 압류되는 것은 아니지만, 통장에 들어오는 금액은 그만큼 줄어듭니다.</p><p><br></p>
@@ -180,7 +188,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p>편한 점도 있습니다. <strong>상반기분을 신청하면 하반기분도 신청한 것으로 봅니다</strong>. 내년 3월에 다시 신청하지 않아도 됩니다. 조세특례제한법 제100조의6 제9항입니다.</p><p><br></p>
 <p>다만 상반기 지급 때는 근로장려금만 나옵니다. 자녀장려금은 하반기 정산 때 함께 나옵니다.</p><p><br></p>
 <p class="ph">▲ 여기에 card_07.png 를 올리세요 · 대체텍스트: 근로장려금 반기신청 판단 요약</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>신청 전에 정리하고 갈 것</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">8.</span>신청 전에 정리하고 갈 것</h2><p><br></p>
 <p>여기까지가 금액과 기한입니다. 아래는 신청 화면을 열기 전에 한 번씩 짚고 갈 내용입니다.</p><p><br></p>
 <p><br></p><h3>정기신청과 반기신청 중 무엇이 유리한가</h3><p><br></p>
 <p>둘 다 자격이 된다면 고민이 생깁니다. 정답은 상황에 따라 다릅니다. 판단 기준을 세 가지로 정리했습니다.</p><p><br></p>
@@ -236,7 +244,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p><strong>둘째, 재산이 기준 아래면 전액이라는 착각입니다</strong>. 기준선은 두 개입니다. 2억 4천만원은 자격선이고, 1억 7천만원은 절반선입니다. 1억 8천만원이면 자격은 되지만 절반만 나옵니다.</p><p><br></p>
 <p><strong>셋째, 12월에 전액이 들어온다는 착각입니다</strong>. 상반기분은 35%입니다. 이 글을 쓴 이유이기도 합니다.</p><p><br></p>
 <p>세 착각의 공통점이 있습니다. 전부 <strong>최대금액 하나만 보고 생긴 오해</strong>입니다. 숫자 하나를 외우는 대신 본인이 어느 칸에 있는지 확인하시면 이런 오해가 생기지 않습니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>자주 묻는 질문</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">9.</span>자주 묻는 질문</h2><p><br></p>
 <p><strong>작년에 정기신청으로 받았는데 올해 9월에 또 신청해도 되나요</strong>.
 됩니다. 방식은 매년 본인이 고릅니다. 올해 근로소득만 있다면 반기신청이 가능합니다. 다만 한 해에 둘 다 받지는 못합니다. 같은 해 소득을 어느 방식으로 받을지 정하는 것입니다.</p><p><br></p>
 <p><strong>중간에 퇴사해서 상반기에 넉 달만 일했습니다. 신청할 수 있나요</strong>.
@@ -250,7 +258,7 @@ button{margin-top:14px;font:inherit;font-weight:700;padding:10px 18px;border-rad
 <p><strong>외국 국적인데 신청할 수 있나요</strong>.
 원칙적으로는 안 됩니다. 과세기간 종료일 현재 국적이 기준입니다. 다만 예외가 있습니다. 대한민국 국적자와 혼인했거나, 대한민국 국적의 부양자녀가 있으면 됩니다.</p><p><br></p>
 <p><strong>결론</strong> — 9월 신청은 1년치를 받는 것이 아니라 35%를 먼저 받는 절차입니다. 본인 가구를 정하고, 총급여액 등이 어느 구간인지 보고, 작년 6월 1일 기준 재산이 두 기준선 중 어디에 있는지 확인하시면 받을 금액의 윤곽이 나옵니다. 9월 15일이 지나면 5%가 깎입니다.</p><p><br></p>
-<p><br></p><hr><p><br></p><h2>확인한 원문</h2><p><br></p>
+<p><br></p><p><br></p><hr><p><br></p><h2><span class="no">10.</span>확인한 원문</h2><p><br></p>
 <p>이 글의 모든 수치는 아래 원문에서 직접 확인했습니다. 확인일 2026년 8월 25일.</p><p><br></p>
 <table>
 <thead>
