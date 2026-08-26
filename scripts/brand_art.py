@@ -189,6 +189,52 @@ def wide(kind, W, H, tight=False):
             f' viewBox="0 0 {W} {H}">{body}</svg>')
 
 
+def portrait(kind, W=1080, H=1300):
+    """네이버 블로그 **모바일 앱 커버** (1080×1300, 세로형).
+
+    가로형과 다른 점이 하나 있습니다 — 네이버가 이 그림 **위에** 블로그명과
+    프로필 사진을 얹습니다(커버 스타일에 따라 자리가 다릅니다).
+    그래서 아래쪽 35% 는 비워 둡니다. 거기까지 그림을 채우면
+    네이버가 얹는 글씨와 우리 글씨가 겹칩니다.
+    """
+    colors, bg_c, ink = PALETTES[kind]
+    cx = W / 2
+    sub = "#B9C2CE" if bg_c == INK else T["ink-soft"]
+    cy = H * .30                       # 구성의 세로 중심 — 위쪽에 둡니다
+    m = W * .32                        # 마크 한 변
+    # 슬로건 아래끝이 H*.62 를 넘지 않아야 네이버가 얹는 글씨와 안 겹칩니다.
+    # 처음 잡은 값(.34/.34)은 슬로건이 67% 에 놓여 겹쳤습니다.
+    name_size, slo_size = W * .105, W * .042
+
+    deco = "".join(
+        sq(W * (.04 + .16 * (i % 6)), H * (.03 + .022 * (i // 6)),
+           W * .105, H * .018, H * .009,
+           colors[i % 4], .18) for i in range(12))
+    deco += "".join(
+        sq(W * (.06 + .16 * (i % 6)), H * (.86 + .028 * (i // 6)),
+           W * .105, H * .018, H * .009,
+           colors[(i + 2) % 4], .18) for i in range(12))
+
+    barw = W * .56
+    bar = "".join(
+        sq(cx - barw / 2 + i * (barw / 4), cy + m * .92,
+           barw / 4 * .92, H * .009, H * .005, colors[i], .95)
+        for i in range(4))
+
+    body = (f'<rect width="{W}" height="{H}" fill="{bg_c}"/>{deco}'
+            f'<g transform="translate({cx - m/2} {cy - m*.62})">{mark(kind, m)}</g>'
+            f'<text x="{cx}" y="{cy + m*.55}" font-family={FONT!r}'
+            f' font-size="{name_size}" font-weight="900" fill="{ink}"'
+            f' text-anchor="middle" dominant-baseline="central"'
+            f' letter-spacing="{name_size*.03}">마치마자</text>{bar}'
+            f'<text x="{cx}" y="{cy + m*1.16}" font-family={FONT!r}'
+            f' font-size="{slo_size}" font-weight="800" fill="{sub}"'
+            f' text-anchor="middle" dominant-baseline="central">'
+            f'마침 필요한 정보를, 알맞게</text>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}"'
+            f' viewBox="0 0 {W} {H}">{body}</svg>')
+
+
 def shoot(pages):
     from playwright.sync_api import sync_playwright
     OUT.mkdir(parents=True, exist_ok=True)
@@ -213,6 +259,7 @@ CHANNEL_SIZES = [
     ("banner_youtube.png", "yt",     2560, 1440, "유튜브 배너 — 가운데 1546×423 만 모두에게 보임"),
     ("naver_title.png",    "wide",   966,  400,  "네이버 블로그 타이틀 (가로 966 고정)"),
     ("cover_wide.png",     "wide",   1600, 900,  "티스토리 커버 등 가로형"),
+    ("naver_mobile.png",   "tall",   1080, 1300, "네이버 블로그 모바일 앱 커버 — 아래 35% 는 네이버가 덮습니다"),
     ("og.png",             "wide",   1200, 630,  "허브·공유 미리보기 (og:image)"),
 ]
 
@@ -240,6 +287,7 @@ def main(argv):
     for name, how, w, h, _why in CHANNEL_SIZES:
         svg = (profile(pick, w) if how == "square"
                else banner(pick, w, h)[0] if how == "yt"
+               else portrait(pick, w, h) if how == "tall"
                else wide(pick, w, h, tight=(h / w < .38)))
         pages.append((name, svg, w, h))
     shoot(pages)
