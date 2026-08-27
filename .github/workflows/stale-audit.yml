@@ -1,8 +1,14 @@
 name: 노후화 스캔
 
+# 예약 실행은 **꺼 뒀습니다** (2026-08-26, 사용자 요청).
+# 다시 켜려면 아래 schedule 줄의 주석(#)만 지우면 됩니다.
 # 매주 월요일 09:00 KST (= 일요일 00:00 UTC)
+#
+# 이 워크플로는 글을 만들지 않습니다. 이미 발행한 글의 숫자가
+# 원장(rates.json)과 어긋났는지 훑어보고 이슈로 알려주기만 합니다.
+# 손으로 돌리는 것은 지금도 됩니다 — Actions 탭에서 '노후화 스캔' → Run workflow.
 on:
-  schedule: [{ cron: '0 0 * * 0' }]
+  # schedule: [{ cron: '0 0 * * 0' }]
   workflow_dispatch:
 
 permissions:
